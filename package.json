@@ -40,22 +40,41 @@
     },
     "nsis": {
       "oneClick": false,
-      "allowToChangeInstallationDirectory": true
+      "allowToChangeInstallationDirectory": true,
+      "artifactName": "${productName}-Setup-${version}.${ext}",
+      "shortcutName": "TrayPulse",
+      "runAfterFinish": true
     },
     "mac": {
       "target": [
-        "dmg",
-        "zip"
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
       ],
       "category": "public.app-category.utilities",
       "icon": "build/icon.png",
       "extendInfo": {
         "LSUIElement": true
-      }
+      },
+      "artifactName": "${productName}-${version}-${arch}.${ext}"
     },
     "publish": [
       {
-        "provider": "github"
+        "provider": "github",
+        "owner": "Ra-mi-17",
+        "repo": "TrayPulse",
+        "releaseType": "draft"
       }
     ]
   },
