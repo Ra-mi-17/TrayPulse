@@ -11,6 +11,11 @@ const DEFAULTS = {
   autoUpdate: true,
   pollIntervalSec: 60,
   powerSaving: false, // true = only read cached BLE values (never wakes devices)
+  // Where batteries are shown. 'taskbar' = embedded right-aligned in the Windows taskbar.
+  displayMode: process.platform === 'win32' ? 'taskbar' : 'tray', // 'taskbar' | 'tray' | 'both'
+  taskbarShowNames: true,
+  taskbarShowDisconnected: true,
+  taskbarShowMic: true,
   trayDisplay: 'lowest', // 'lowest' | 'icon' | <deviceId>
   showMicTray: true,
   notifyLow: true,

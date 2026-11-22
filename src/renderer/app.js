@@ -131,6 +131,8 @@ function renderDevices() {
     });
     bindToggle($('.notify-low', el), d.notifyLow, (v) => update(d.id, { notifyLow: v }));
     bindToggle($('.notify-full', el), d.notifyFull, (v) => update(d.id, { notifyFull: v }));
+    bindToggle($('.on-taskbar', el), d.showOnTaskbar, (v) => update(d.id, { showOnTaskbar: v }));
+    $('.on-taskbar-row', el).hidden = !S.taskbarSupported;
     bindToggle($('.own-tray', el), d.ownTray, (v) => update(d.id, { ownTray: v }));
     bindToggle($('.hidden-toggle', el), d.hidden, (v) => update(d.id, { hidden: v }));
     $('.up', el).disabled = idx === 0;
@@ -293,6 +295,12 @@ function renderSettings() {
     if (el.type === 'checkbox') el.checked = !!v;
     else el.value = String(v);
   });
+
+  // Taskbar widget (Windows only)
+  $('#taskbar-settings').hidden = !S.taskbarSupported;
+  const ws = $('#widget-status');
+  ws.hidden = !(S.taskbarSupported && st.displayMode !== 'tray' && S.widgetStatus);
+  if (!ws.hidden) ws.textContent = t('set.widgetFailed', { reason: t('widget.' + S.widgetStatus) });
 
   // Tray display choices
   const td = $('#tray-display');

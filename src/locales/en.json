@@ -2,15 +2,12 @@
   "tab.devices": "Devices",
   "tab.audio": "Audio",
   "tab.settings": "Settings",
-
   "ui.refresh": "Refresh now",
   "ui.close": "Close",
   "ui.quit": "Quit",
   "ui.shotRegion": "Region shot",
   "ui.shotFull": "Full screen",
-
   "tray.noDevices": "No devices with battery info",
-
   "menu.open": "Open TrayPulse",
   "menu.refresh": "Refresh now",
   "menu.muteMic": "Mute microphone",
@@ -19,7 +16,6 @@
   "menu.shotFull": "Screenshot (full screen)",
   "menu.settings": "Settings…",
   "menu.quit": "Quit",
-
   "device.none": "No devices reporting battery level were found",
   "device.noneHint": "Connect a Bluetooth device and press ⟳. Some devices don't expose their battery level to the OS.",
   "device.disconnected": "Disconnected",
@@ -37,7 +33,6 @@
   "device.down": "▼ Down",
   "device.forget": "Remove",
   "device.forgetConfirm": "Remove \"{name}\" from the list? (It will reappear when it reconnects.)",
-
   "part.left": "L",
   "part.right": "R",
   "part.case": "Case",
@@ -45,22 +40,18 @@
   "part.part2": "#2",
   "part.part3": "#3",
   "part.part4": "#4",
-
   "time.justNow": "just now",
   "time.minutesAgo": "{n} min ago",
   "time.hoursAgo": "{n} h ago",
   "time.daysAgo": "{n} days ago",
-
   "notify.lowTitle": "{name} battery is low",
   "notify.lowBody": "{level}% remaining. Please charge it.",
   "notify.fullTitle": "{name} is charged",
   "notify.fullBody": "Battery: {level}%",
-
   "mic.tooltipMuted": "Microphone: muted (click to unmute)",
   "mic.tooltipLive": "Microphone: on (click to mute)",
   "mic.mutedToast": "🔇 Microphone muted",
   "mic.liveToast": "🎙 Microphone unmuted",
-
   "audio.output": "Output device",
   "audio.input": "Input device (microphone)",
   "audio.mixer": "Per-app volume",
@@ -72,10 +63,8 @@
   "audio.systemSounds": "System sounds",
   "audio.needSas": "To switch output/input devices on macOS, run \"brew install switchaudio-osx\".",
   "audio.mixerUnsupported": "Per-app volume isn't supported on this OS.",
-
   "shot.savedTitle": "Screenshot saved",
   "shot.failed": "Screenshot failed.",
-
   "set.general": "General",
   "set.language": "Language",
   "set.auto": "Automatic (follow OS)",
@@ -91,8 +80,7 @@
   "set.updAvailable": "Version v{v} is available. It will be installed when you quit.",
   "set.updLatest": "You're up to date.",
   "set.updError": "Update check failed: {msg}",
-  "set.tray": "Tray icon",
-  "set.trayDisplay": "Battery shown on the icon",
+  "set.trayDisplay": "Battery shown on the tray icon",
   "set.trayLowest": "Lowest device",
   "set.trayIcon": "None (icon only)",
   "set.showMicTray": "Show microphone state in the tray",
@@ -117,7 +105,6 @@
   "set.pluginsHint": "Drop a plugin (.js) into the folder and restart the app to support more devices.",
   "set.about": "About",
   "set.openLogs": "Open logs folder",
-
   "hk.micMute": "Toggle microphone mute",
   "hk.screenshotRegion": "Region screenshot",
   "hk.screenshotFull": "Full-screen screenshot",
@@ -125,5 +112,19 @@
   "hk.press": "Press keys…",
   "hk.conflict": "Already used by another app",
   "hk.invalid": "Invalid shortcut",
-  "hk.hint": "Click a button, then press the keys. Esc cancels, Backspace clears."
+  "hk.hint": "Click a button, then press the keys. Esc cancels, Backspace clears.",
+  "set.display": "Display",
+  "set.displayMode": "Show batteries in",
+  "set.modeTaskbar": "Taskbar (right-aligned)",
+  "set.modeTray": "System tray",
+  "set.modeBoth": "Both",
+  "set.taskbarShowNames": "Show device names on the taskbar",
+  "set.taskbarShowDisconnected": "Show disconnected devices on the taskbar",
+  "set.taskbarShowMic": "Show microphone state on the taskbar",
+  "set.widgetFailed": "Can't show on the taskbar, using the system tray instead ({reason})",
+  "widget.vertical": "vertical taskbars are not supported",
+  "widget.no-taskbar": "taskbar not found",
+  "widget.no-window": "window could not be created",
+  "widget.error": "internal error, see logs",
+  "device.showOnTaskbar": "Show on taskbar"
 }

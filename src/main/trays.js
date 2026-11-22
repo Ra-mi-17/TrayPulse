@@ -35,6 +35,20 @@ class TrayManager {
     this.main = new Tray(icons.appIcon(nativeImage, { dark: darkTaskbar(), platform: process.platform }));
     this.main.setToolTip('TrayPulse');
     this.wire(this.main);
+    this.mainSig = '';
+  }
+
+  // Show / hide the battery tray icons (main + per-device). The mic icon is controlled by setMic().
+  setEnabled(on) {
+    if (on && !this.main) {
+      this.createMain();
+      this.update();
+    } else if (!on && this.main) {
+      this.main.destroy();
+      this.main = null;
+      for (const e of this.deviceTrays.values()) e.tray.destroy();
+      this.deviceTrays.clear();
+    }
   }
 
   wire(tray, onClick) {
@@ -78,6 +92,7 @@ class TrayManager {
 
   update(devices) {
     if (devices) this.devices = devices;
+    if (!this.main) return; // tray hidden (taskbar widget mode)
     const visible = this.devices.filter((d) => !d.hidden);
     const dark = darkTaskbar();
 
@@ -157,4 +172,4 @@ class TrayManager {
   }
 }
 
-module.exports = { TrayManager };
+module.exports = { TrayManager, darkTaskbar };

@@ -10,6 +10,7 @@ Bluetooth / ワイヤレス機器のバッテリー残量をタスクトレイ�
 | 機能 | Windows | macOS |
 |---|---|---|
 | Bluetooth 機器のバッテリー残量（Classic / BLE） | ✅ | ✅ (要検証) |
+| **タスクバーに右寄せで直接表示**（通知領域の左） | ✅ Windows 10 / 11 | — (メニューバーに % 表示) |
 | トレイアイコンに残量 % を表示（一番少ない機器 or 指定機器） | ✅ | ✅ メニューバーに % 表示 (要検証) |
 | 機器ごとに専用トレイアイコンを表示 | ✅ | ✅ (要検証) |
 | 残量低下の通知（機器ごとにしきい値設定） | ✅ | ✅ |
@@ -26,6 +27,17 @@ Bluetooth / ワイヤレス機器のバッテリー残量をタスクトレイ�
 | 自動アップデート（GitHub Releases） | ✅ | ✅ |
 | 取得間隔の設定・省電力モード | ✅ | ✅ |
 | プラグインで対応機器を追加 | ✅ | ✅ |
+
+### タスクバー表示（Windows）
+
+Windows 11 ではタスクバーに独自のツールバー（DeskBand）を追加する仕組みが廃止されたため、
+TrafficMonitor などと同じ方法で、小さな透明ウィンドウをタスクバー（`Shell_TrayWnd`）の子ウィンドウにして通知領域のすぐ左に配置しています。
+
+- 設定タブの「残量の表示場所」で **タスクバー / タスクトレイ / 両方** を切り替えられます（Windows の既定はタスクバー）。
+- 左クリックでポップアップ、右クリックでメニュー、マイクのアイコンのクリックでミュートを切り替えます。
+- 別プロセスの子ウィンドウになった Chromium はマウス入力を受け取れないため、クリックはヘルパーの低レベルマウスフック（`WH_MOUSE_LL`）で検出しています。フックが扱うのは **ウィジェットの範囲内のクリックだけ** で、それ以外のマウス操作はそのまま通します。
+- タスクバーが縦向きの場合など、タスクバーに表示できない場合は自動的にタスクトレイ表示に切り替わります。
+- エクスプローラーが再起動した場合は、ウィジェットを自動で作り直します。
 
 ### 既定のショートカット
 
@@ -73,6 +85,7 @@ src/
   main/
     main.js              アプリ本体（トレイ・ポップアップ・IPC・通知・ショートカット）
     trays.js             トレイアイコン管理（メイン / マイク / 機器ごと）
+    taskbarWidget.js     タスクバーに埋め込むウィジェット（Windows）
     devices.js           ポーリング、機器の記憶、通知判定
     store.js             設定 (JSON) の保存
     i18n.js              多言語
@@ -85,6 +98,7 @@ src/
     platform/winHelper.js  ヘルパーとの JSON-lines 通信
   preload/preload.js     レンダラーに公開する API（contextIsolation 有効）
   renderer/              ポップアップ UI（素の HTML / CSS / JS）
+  widget/                タスクバーウィジェットの UI
   locales/               ja.json / en.json
 ```
 
@@ -93,6 +107,7 @@ src/
 - **バッテリー**: Windows がデバイスノードに公開している `DEVPKEY_Bluetooth_Battery` を SetupAPI で読みます。設定アプリに表示される値と同じです。
   それに加えて、BLE 機器の GATT Battery Service (0x180F) を WinRT で読みます。
 - **オーディオ**: Core Audio (MMDevice / IAudioSessionManager2 / IPolicyConfig) を C# の COM 相互運用で呼び出します。
+- **タスクバー表示**: SetParent で Shell_TrayWnd に埋め込み、2 秒ごとに通知領域の位置に合わせて再配置します。
 - ヘルパーは `powershell.exe` 上で動き、C# を `Add-Type` でメモリ上にコンパイルします。.NET SDK やネイティブモジュールのビルドは不要です。
   DLL をディスクにキャッシュしないのは、Smart App Control が未署名 DLL の読み込みをブロックするためです。
 
@@ -134,7 +149,7 @@ MIT
 ## English
 
 **TrayPulse** is a cross-platform (Windows / macOS) Electron tray app that shows the battery level of Bluetooth and wireless devices,
-with quick audio controls (output/input switching, mic mute with a global hotkey, per-app volume mixer on Windows) and screenshot shortcuts.
+shown right-aligned directly on the Windows taskbar (or in the tray / macOS menu bar), with quick audio controls (output/input switching, mic mute with a global hotkey, per-app volume mixer on Windows) and screenshot shortcuts.
 
 - `npm install && npm start` to run, `npm run dist` to package.
 - Battery data comes from pluggable *providers* (`src/main/providers`). Drop extra providers into the plugins folder.

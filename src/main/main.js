@@ -19,7 +19,8 @@ const { Store } = require('./store');
 const { createI18n } = require('./i18n');
 const { loadProviders } = require('./providers');
 const { DeviceManager } = require('./devices');
-const { TrayManager } = require('./trays');
+const { TrayManager, darkTaskbar } = require('./trays');
+const { TaskbarWidget } = require('./taskbarWidget');
 const audio = require('./audio');
 const screenshot = require('./screenshot');
 const winHelper = require('./platform/winHelper');
@@ -32,7 +33,8 @@ if (!app.requestSingleInstanceLock()) {
   process.exit(0);
 }
 
-let store, i18n, devices, trays, popup;
+let store, i18n, devices, trays, popup, widget;
+let widgetStatus = null; // null = OK / not used, otherwise failure reason
 let lastHiddenAt = 0;
 let micMuted = null;
 let micTimer = null;
@@ -115,18 +117,23 @@ function positionPopup(trayBounds) {
   popup.setPosition(x, y, false);
 }
 
-function togglePopup(tray) {
+function togglePopup(bounds) {
   if (popup.isVisible()) {
     popup.hide();
     return;
   }
   // The blur caused by clicking the tray icon already hid the window: treat as toggle-off.
   if (Date.now() - lastHiddenAt < 250) return;
-  showPopup(tray?.getBounds());
+  showPopup(bounds);
+}
+
+function defaultAnchor() {
+  if (widgetActive()) return widget.bounds();
+  return trays.main ? trays.main.getBounds() : null;
 }
 
 function showPopup(bounds, tab) {
-  positionPopup(bounds || trays.main.getBounds());
+  positionPopup(bounds || defaultAnchor());
   popup.show();
   popup.focus();
   popup.webContents.send('popup:shown', { tab });
@@ -160,8 +167,11 @@ async function refreshMic() {
 function setMicState(muted) {
   const changed = muted !== micMuted;
   micMuted = muted;
-  trays.setMic(store.get('showMicTray') && audio.capabilities.micMute && muted !== null, muted);
-  if (changed) popup?.webContents.send('mic:update', { muted });
+  trays.setMic(store.get('showMicTray') && trayVisible() && audio.capabilities.micMute && muted !== null, muted);
+  if (changed) {
+    popup?.webContents.send('mic:update', { muted });
+    widget?.update();
+  }
 }
 
 async function toggleMic() {
@@ -316,6 +326,8 @@ function state() {
       error: devices.errors[p.id] || null,
     })),
     hotkeyStatus,
+    widgetStatus,
+    taskbarSupported: process.platform === 'win32',
     lang: i18n.lang,
     dict: i18n.dict,
     dark: nativeTheme.shouldUseDarkColors,
@@ -349,6 +361,7 @@ function registerIpc() {
   ipcMain.handle('device:update', (_e, id, patch) => {
     store.setDevice(id, patch);
     trays.update(devices.list());
+    widget?.update();
     return state();
   });
   ipcMain.handle('device:forget', (_e, id) => {
@@ -377,6 +390,11 @@ function registerIpc() {
       setMicState(micMuted);
     }
     if ('trayDisplay' in patch || 'defaultLowThreshold' in patch) trays.update(devices.list());
+    if ('displayMode' in patch) {
+      widgetStatus = null;
+      applyDisplayMode();
+    }
+    if (Object.keys(patch).some((k) => k.startsWith('taskbar') || k === 'defaultLowThreshold')) widget?.update();
     return state();
   });
 
@@ -403,6 +421,13 @@ function registerIpc() {
   });
   ipcMain.handle('audio:setSessionVolume', (_e, key, v) => audio.setSessionVolume(key, v));
   ipcMain.handle('audio:setSessionMute', (_e, key, m) => audio.setSessionMute(key, m));
+
+  // Taskbar widget
+  const fromWidget = (e) => widget && widget.owns(e.sender);
+  ipcMain.on('widget:width', (e, w) => fromWidget(e) && widget.setContentWidth(Number(w) || 0));
+  ipcMain.on('widget:click', (e) => fromWidget(e) && togglePopup(widget.bounds()));
+  ipcMain.on('widget:menu', (e) => fromWidget(e) && popupMenuAtCursor());
+  ipcMain.on('widget:mic', (e) => fromWidget(e) && toggleMic().catch(() => {}));
 
   ipcMain.handle('screenshot', (_e, mode) => takeScreenshot(mode));
   ipcMain.handle('app:quit', () => app.quit());
@@ -434,6 +459,79 @@ async function toggleMicTo(mode) {
   return muted;
 }
 
+// Context menus need an owner window that has focus (otherwise they don't open, or don't close on
+// an outside click). The taskbar widget can't be that owner, so a tiny invisible window is used.
+let menuHost = null;
+function popupMenuAtCursor() {
+  if (!menuHost || menuHost.isDestroyed()) {
+    menuHost = new BrowserWindow({
+      width: 1,
+      height: 1,
+      show: false,
+      frame: false,
+      transparent: true,
+      skipTaskbar: true,
+      alwaysOnTop: true,
+      resizable: false,
+      focusable: true,
+      webPreferences: { sandbox: true },
+    });
+  }
+  const p = screen.getCursorScreenPoint();
+  menuHost.setPosition(p.x, p.y);
+  menuHost.show();
+  menuHost.focus();
+  buildMenu().popup({ window: menuHost, x: 0, y: 0, callback: () => menuHost && !menuHost.isDestroyed() && menuHost.hide() });
+}
+// ------------------------------------------------------------------ display mode (taskbar widget / tray)
+function widgetActive() {
+  return !!widget && widget.enabled && !widgetStatus;
+}
+
+// The tray is shown in tray/both mode, and as a fallback whenever the taskbar widget can't be shown.
+function trayVisible() {
+  return store.get('displayMode') !== 'taskbar' || !widgetActive();
+}
+
+function applyDisplayMode() {
+  const mode = store.get('displayMode');
+  if (widget) {
+    if (mode === 'tray') widget.disable();
+    else widget.enable();
+  }
+  trays.setEnabled(trayVisible());
+  setMicState(micMuted);
+  popup?.webContents.send('state:update', state());
+}
+
+function widgetData() {
+  const list = devices
+    .list()
+    .filter((d) => !d.hidden && d.showOnTaskbar && (d.connected !== false || store.get('taskbarShowDisconnected')));
+  const t = i18n.t;
+  return {
+    dark: darkTaskbar(),
+    showNames: store.get('taskbarShowNames'),
+    devices: list.map((d) => ({
+      id: d.id,
+      name: d.displayName,
+      kind: d.kind,
+      level: d.effectiveLevel ?? d.level,
+      lowThreshold: d.lowThreshold,
+      connected: d.connected,
+      components: d.components,
+    })),
+    mic: { show: store.get('taskbarShowMic') && audio.capabilities.micMute && micMuted !== null, muted: !!micMuted },
+    text: {
+      noDevices: t('tray.noDevices'),
+      disconnected: t('device.disconnected'),
+      micMuted: t('mic.tooltipMuted'),
+      micLive: t('mic.tooltipLive'),
+      parts: { left: t('part.left'), right: t('part.right'), case: t('part.case') },
+    },
+  };
+}
+
 function pluginDir() {
   return path.join(app.getPath('userData'), 'plugins');
 }
@@ -451,6 +549,18 @@ async function captureForDocs(dir) {
     await wait(tab === 'audio' ? 3000 : 800);
     const img = await popup.webContents.capturePage();
     fs.writeFileSync(path.join(dir, `${tab}.png`), img.toPNG());
+  }
+  // Right half of the primary display's bottom edge (taskbar widget).
+  popup.hide();
+  await wait(800);
+  const { desktopCapturer } = require('electron');
+  const d = screen.getPrimaryDisplay();
+  const size = { width: Math.round(d.size.width * d.scaleFactor), height: Math.round(d.size.height * d.scaleFactor) };
+  const [src] = await desktopCapturer.getSources({ types: ['screen'], thumbnailSize: size });
+  if (src) {
+    const h = Math.round(80 * d.scaleFactor);
+    const shot = src.thumbnail.crop({ x: Math.round(size.width * 0.4), y: size.height - h, width: Math.round(size.width * 0.6), height: h });
+    fs.writeFileSync(path.join(dir, 'taskbar.png'), shot.toPNG());
   }
   app.quit();
 }
@@ -472,17 +582,32 @@ app.whenReady().then(async () => {
   trays = new TrayManager({
     getI18n: () => i18n,
     store: () => store,
-    onClick: (tray) => togglePopup(tray),
+    onClick: (tray) => togglePopup(tray.getBounds()),
     onMicClick: () => toggleMic().catch(() => {}),
     buildMenu,
   });
-  trays.createMain();
+  if (process.platform === 'win32') {
+    widget = new TaskbarWidget({
+      getData: widgetData,
+      log,
+      onStatus: (reason) => {
+        if (reason) log('taskbar widget unavailable:', reason);
+        widgetStatus = reason;
+        trays.setEnabled(trayVisible());
+        setMicState(micMuted);
+        popup?.webContents.send('state:update', state());
+      },
+    });
+  }
   createPopup();
   registerIpc();
   registerHotkeys();
 
+  applyDisplayMode();
+
   devices.on('update', (list) => {
     trays.update(list);
+    widget?.update();
     popup?.webContents.send('state:update', state());
   });
   devices.start();
@@ -493,6 +618,7 @@ app.whenReady().then(async () => {
 
   nativeTheme.on('updated', () => {
     trays.redrawAll();
+    widget?.update();
     popup?.setBackgroundColor(themeBackground());
     broadcastSettings();
   });
@@ -504,10 +630,12 @@ app.whenReady().then(async () => {
 });
 
 app.on('second-instance', () => showPopup());
+app.on('before-quit', () => widget?.disable()); // don't recreate the widget while quitting
 app.on('window-all-closed', (e) => e.preventDefault()); // tray app: keep running
 app.on('will-quit', () => {
   globalShortcut.unregisterAll();
   devices?.dispose();
+  widget?.disable();
   trays?.destroy();
   store?.flush();
   winHelper.stopAll();

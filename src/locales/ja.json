@@ -2,15 +2,12 @@
   "tab.devices": "デバイス",
   "tab.audio": "オーディオ",
   "tab.settings": "設定",
-
   "ui.refresh": "今すぐ更新",
   "ui.close": "閉じる",
   "ui.quit": "終了",
   "ui.shotRegion": "範囲スクショ",
   "ui.shotFull": "全画面スクショ",
-
   "tray.noDevices": "バッテリー情報のあるデバイスがありません",
-
   "menu.open": "TrayPulse を開く",
   "menu.refresh": "今すぐ更新",
   "menu.muteMic": "マイクをミュート",
@@ -19,7 +16,6 @@
   "menu.shotFull": "全画面スクリーンショット",
   "menu.settings": "設定…",
   "menu.quit": "終了",
-
   "device.none": "バッテリー残量を取得できるデバイスが見つかりません",
   "device.noneHint": "Bluetooth 機器を接続してから ⟳ を押してください。機器によっては OS が残量を公開していない場合があります。",
   "device.disconnected": "未接続",
@@ -37,7 +33,6 @@
   "device.down": "▼ 下へ",
   "device.forget": "削除",
   "device.forgetConfirm": "「{name}」を一覧から削除しますか？（再接続すると再び表示されます）",
-
   "part.left": "左",
   "part.right": "右",
   "part.case": "ケース",
@@ -45,22 +40,18 @@
   "part.part2": "#2",
   "part.part3": "#3",
   "part.part4": "#4",
-
   "time.justNow": "たった今",
   "time.minutesAgo": "{n} 分前",
   "time.hoursAgo": "{n} 時間前",
   "time.daysAgo": "{n} 日前",
-
   "notify.lowTitle": "{name} のバッテリー残量が少なくなっています",
   "notify.lowBody": "残り {level}% です。充電してください。",
   "notify.fullTitle": "{name} の充電が完了しました",
   "notify.fullBody": "バッテリー残量: {level}%",
-
   "mic.tooltipMuted": "マイク: ミュート中（クリックで解除）",
   "mic.tooltipLive": "マイク: オン（クリックでミュート）",
   "mic.mutedToast": "🔇 マイクをミュートしました",
   "mic.liveToast": "🎙 マイクのミュートを解除しました",
-
   "audio.output": "出力デバイス",
   "audio.input": "入力デバイス（マイク）",
   "audio.mixer": "アプリごとの音量",
@@ -72,10 +63,8 @@
   "audio.systemSounds": "システム音",
   "audio.needSas": "macOS で出力/入力デバイスを切り替えるには「brew install switchaudio-osx」を実行してください。",
   "audio.mixerUnsupported": "この OS ではアプリごとの音量調整に対応していません。",
-
   "shot.savedTitle": "スクリーンショットを保存しました",
   "shot.failed": "スクリーンショットに失敗しました。",
-
   "set.general": "一般",
   "set.language": "言語",
   "set.auto": "自動（OS に合わせる）",
@@ -91,8 +80,7 @@
   "set.updAvailable": "新しいバージョン v{v} があります。ダウンロード後、終了時にインストールされます。",
   "set.updLatest": "最新バージョンです。",
   "set.updError": "確認に失敗しました: {msg}",
-  "set.tray": "トレイアイコン",
-  "set.trayDisplay": "アイコンに表示する残量",
+  "set.trayDisplay": "トレイアイコンに表示する残量",
   "set.trayLowest": "一番少ないデバイス",
   "set.trayIcon": "表示しない（アイコンのみ）",
   "set.showMicTray": "マイクのミュート状態をトレイに表示",
@@ -117,7 +105,6 @@
   "set.pluginsHint": "プラグイン（.js）をフォルダに置いてアプリを再起動すると、対応機器を追加できます。",
   "set.about": "情報",
   "set.openLogs": "ログフォルダを開く",
-
   "hk.micMute": "マイクのミュート切り替え",
   "hk.screenshotRegion": "範囲スクリーンショット",
   "hk.screenshotFull": "全画面スクリーンショット",
@@ -125,5 +112,19 @@
   "hk.press": "キーを押してください…",
   "hk.conflict": "他のアプリが使用中のため登録できませんでした",
   "hk.invalid": "無効なショートカットです",
-  "hk.hint": "ボタンを押してからキーを入力します。Esc でキャンセル、Backspace で解除します。"
+  "hk.hint": "ボタンを押してからキーを入力します。Esc でキャンセル、Backspace で解除します。",
+  "set.display": "表示",
+  "set.displayMode": "残量の表示場所",
+  "set.modeTaskbar": "タスクバー（右寄せ）",
+  "set.modeTray": "タスクトレイ",
+  "set.modeBoth": "両方",
+  "set.taskbarShowNames": "タスクバーに機器名を表示",
+  "set.taskbarShowDisconnected": "未接続の機器もタスクバーに表示",
+  "set.taskbarShowMic": "タスクバーにマイクの状態を表示",
+  "set.widgetFailed": "タスクバーに表示できないため、タスクトレイに表示しています（{reason}）",
+  "widget.vertical": "縦向きのタスクバーには非対応です",
+  "widget.no-taskbar": "タスクバーが見つかりません",
+  "widget.no-window": "ウィンドウを作成できませんでした",
+  "widget.error": "内部エラー。ログを確認してください",
+  "device.showOnTaskbar": "タスクバーに表示"
 }

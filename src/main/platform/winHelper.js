@@ -3,14 +3,16 @@
 const { spawn } = require('child_process');
 const path = require('path');
 const readline = require('readline');
+const { EventEmitter } = require('events');
 
 function scriptPath() {
   // When packaged, native files are unpacked from the asar archive.
   return path.join(__dirname, '..', 'native', 'win', 'helper.ps1').replace('app.asar', 'app.asar.unpacked');
 }
 
-class WinHelper {
+class WinHelper extends EventEmitter {
   constructor(name) {
+    super();
     this.name = name;
     this.proc = null;
     this.seq = 1;
@@ -35,6 +37,10 @@ class WinHelper {
         try {
           msg = JSON.parse(line.replace(/^\uFEFF/, ''));
         } catch {
+          return;
+        }
+        if (msg.event) {
+          this.emit('event', msg); // unsolicited events (e.g. taskbar widget clicks)
           return;
         }
         if (msg.id === 0 && !started) {

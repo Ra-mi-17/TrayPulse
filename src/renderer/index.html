@@ -82,7 +82,20 @@
         <div class="row"><span></span><button class="btn small" id="btn-check-updates" data-i18n="set.checkUpdates"></button></div>
         <p class="hint" id="update-status"></p>
 
-        <h3 data-i18n="set.tray"></h3>
+        <h3 data-i18n="set.display"></h3>
+        <div id="taskbar-settings">
+          <label class="row"><span data-i18n="set.displayMode"></span>
+            <select data-setting="displayMode">
+              <option value="taskbar" data-i18n="set.modeTaskbar"></option>
+              <option value="tray" data-i18n="set.modeTray"></option>
+              <option value="both" data-i18n="set.modeBoth"></option>
+            </select>
+          </label>
+          <p class="notice" id="widget-status" hidden></p>
+          <label class="row"><span data-i18n="set.taskbarShowNames"></span><input type="checkbox" class="switch" data-setting="taskbarShowNames" /></label>
+          <label class="row"><span data-i18n="set.taskbarShowDisconnected"></span><input type="checkbox" class="switch" data-setting="taskbarShowDisconnected" /></label>
+          <label class="row"><span data-i18n="set.taskbarShowMic"></span><input type="checkbox" class="switch" data-setting="taskbarShowMic" /></label>
+        </div>
         <label class="row"><span data-i18n="set.trayDisplay"></span><select data-setting="trayDisplay" id="tray-display"></select></label>
         <label class="row"><span data-i18n="set.showMicTray"></span><input type="checkbox" class="switch" data-setting="showMicTray" /></label>
         <p class="hint" data-i18n="set.ownTrayHint"></p>
@@ -155,6 +168,7 @@
           <label class="row"><span data-i18n="device.lowThreshold"></span><input type="number" min="1" max="99" class="num-input low" /></label>
           <label class="row"><span data-i18n="device.notifyLow"></span><input type="checkbox" class="switch notify-low" /></label>
           <label class="row"><span data-i18n="device.notifyFull"></span><input type="checkbox" class="switch notify-full" /></label>
+          <label class="row on-taskbar-row"><span data-i18n="device.showOnTaskbar"></span><input type="checkbox" class="switch on-taskbar" /></label>
           <label class="row"><span data-i18n="device.ownTray"></span><input type="checkbox" class="switch own-tray" /></label>
           <label class="row"><span data-i18n="device.hidden"></span><input type="checkbox" class="switch hidden-toggle" /></label>
           <div class="edit-actions">

@@ -141,6 +141,173 @@ namespace TrayPulse
     }
 
     // ------------------------------------------------------------------
+    // Taskbar embedding: makes an app window a child of the taskbar (Shell_TrayWnd)
+    // and keeps it right-aligned next to the notification area.
+    // Windows 11 removed DeskBands, so this is the approach tools like TrafficMonitor use.
+    // ------------------------------------------------------------------
+    public static class Taskbar
+    {
+        [StructLayout(LayoutKind.Sequential)] struct RECT { public int L, T, R, B; }
+
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)] static extern IntPtr FindWindowW(string cls, string name);
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)] static extern IntPtr FindWindowExW(IntPtr parent, IntPtr after, string cls, string name);
+        [DllImport("user32.dll")] static extern bool GetWindowRect(IntPtr h, out RECT r);
+        [DllImport("user32.dll")] static extern IntPtr GetParent(IntPtr h);
+        [DllImport("user32.dll")] static extern IntPtr SetParent(IntPtr child, IntPtr parent);
+        [DllImport("user32.dll", EntryPoint = "GetWindowLongPtrW")] static extern IntPtr GetWindowLongPtr(IntPtr h, int idx);
+        [DllImport("user32.dll", EntryPoint = "SetWindowLongPtrW")] static extern IntPtr SetWindowLongPtr(IntPtr h, int idx, IntPtr v);
+        [DllImport("user32.dll")] static extern bool SetWindowPos(IntPtr h, IntPtr after, int x, int y, int w, int hgt, uint flags);
+        [DllImport("user32.dll")] static extern bool IsWindow(IntPtr h);
+        [DllImport("user32.dll")] static extern uint GetDpiForWindow(IntPtr h);
+        [DllImport("user32.dll")] static extern IntPtr SetThreadDpiAwarenessContext(IntPtr ctx);
+
+        const int GWL_STYLE = -16;
+        const long WS_CHILD = 0x40000000L, WS_POPUP = 0x80000000L, WS_CAPTION = 0x00C00000L, WS_THICKFRAME = 0x00040000L;
+        const uint SWP_NOACTIVATE = 0x10, SWP_SHOWWINDOW = 0x40, SWP_NOZORDER = 0x4;
+        static readonly IntPtr HWND_TOP = IntPtr.Zero;
+        static readonly IntPtr PER_MONITOR_AWARE_V2 = new IntPtr(-4);
+
+        static Dictionary<string, object> Fail(string reason)
+        {
+            var r = new Dictionary<string, object>(); r["ok"] = false; r["reason"] = reason; return r;
+        }
+
+        // hwnd: window to embed. width: desired width in physical pixels (0 = keep). gap: space before the tray area.
+        public static Dictionary<string, object> Place(long hwnd, int width, int gap)
+        {
+            IntPtr prevCtx = SetThreadDpiAwarenessContext(PER_MONITOR_AWARE_V2);
+            try
+            {
+                IntPtr h = new IntPtr(hwnd);
+                if (!IsWindow(h)) return Fail("no-window");
+                IntPtr tb = FindWindowW("Shell_TrayWnd", null);
+                if (tb == IntPtr.Zero) return Fail("no-taskbar");
+                RECT tbr; GetWindowRect(tb, out tbr);
+                int tbW = tbr.R - tbr.L, tbH = tbr.B - tbr.T;
+                if (tbH > tbW) return Fail("vertical");
+
+                bool attached = false;
+                if (GetParent(h) != tb)
+                {
+                    long style = GetWindowLongPtr(h, GWL_STYLE).ToInt64();
+                    style = (style & ~(WS_POPUP | WS_CAPTION | WS_THICKFRAME)) | WS_CHILD;
+                    SetWindowLongPtr(h, GWL_STYLE, new IntPtr(style));
+                    SetParent(h, tb);
+                    attached = true;
+                }
+
+                // Right edge = left edge of the notification area (clock, tray icons).
+                int right = tbW;
+                IntPtr notify = FindWindowExW(tb, IntPtr.Zero, "TrayNotifyWnd", null);
+                RECT nr;
+                if (notify != IntPtr.Zero && GetWindowRect(notify, out nr) && nr.R > nr.L) right = nr.L - tbr.L;
+
+                // Left limit = right edge of the task button area (left-aligned Windows 11 / Windows 10).
+                int left = 0;
+                IntPtr rebar = FindWindowExW(tb, IntPtr.Zero, "ReBarWindow32", null);
+                RECT rr;
+                if (rebar != IntPtr.Zero && GetWindowRect(rebar, out rr)) left = rr.R - tbr.L;
+
+                RECT cur; GetWindowRect(h, out cur);
+                int w = width > 0 ? width : cur.R - cur.L;
+                int x = right - gap - w;
+                SetWindowPos(h, HWND_TOP, x, 0, w, tbH, SWP_NOACTIVATE | SWP_SHOWWINDOW);
+                // Hand the physical-pixel rectangle to the mouse hook (its own thread can't reliably query it).
+                RECT placed; GetWindowRect(h, out placed);
+                TaskbarInput.SetRect(placed.L, placed.T, placed.R, placed.B);
+
+                var res = new Dictionary<string, object>();
+                res["ok"] = true;
+                res["attached"] = attached;
+                res["x"] = x; res["width"] = w; res["height"] = tbH;
+                res["available"] = right - gap - left; // free width between task buttons and the tray
+                res["dpi"] = (int)GetDpiForWindow(tb);
+                return res;
+            }
+            finally { SetThreadDpiAwarenessContext(prevCtx); }
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Mouse input for the taskbar widget.
+    // Chromium windows re-parented into another process's window no longer receive mouse input,
+    // so a low-level mouse hook watches for clicks inside the widget's rectangle only, swallows them
+    // and reports them as JSON events on stdout. Clicks anywhere else are passed through untouched.
+    // ------------------------------------------------------------------
+    public static class TaskbarInput
+    {
+        [StructLayout(LayoutKind.Sequential)] struct RECT { public int L, T, R, B; }
+        [StructLayout(LayoutKind.Sequential)] struct POINT { public int X, Y; }
+        [StructLayout(LayoutKind.Sequential)] struct MSLLHOOKSTRUCT { public POINT pt; public uint mouseData, flags, time; public IntPtr extra; }
+        [StructLayout(LayoutKind.Sequential)] struct MSG { public IntPtr hwnd; public uint message; public IntPtr wParam, lParam; public uint time; public POINT pt; }
+        delegate IntPtr HookProc(int code, IntPtr wParam, IntPtr lParam);
+
+        [DllImport("user32.dll", SetLastError = true)] static extern IntPtr SetWindowsHookExW(int id, HookProc proc, IntPtr hMod, uint threadId);
+        [DllImport("user32.dll")] static extern bool UnhookWindowsHookEx(IntPtr hook);
+        [DllImport("user32.dll")] static extern IntPtr CallNextHookEx(IntPtr hook, int code, IntPtr wParam, IntPtr lParam);
+        [DllImport("user32.dll")] static extern int GetMessageW(out MSG msg, IntPtr hwnd, uint min, uint max);
+        [DllImport("user32.dll")] static extern bool IsWindowVisible(IntPtr h);
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode)] static extern IntPtr GetModuleHandleW(string name);
+
+        const int WH_MOUSE_LL = 14;
+        const int WM_LBUTTONDOWN = 0x201, WM_LBUTTONUP = 0x202, WM_RBUTTONDOWN = 0x204, WM_RBUTTONUP = 0x205;
+
+        static readonly HookProc proc = Hook; // keep the delegate alive
+        static IntPtr hook = IntPtr.Zero;
+        static long target;
+        static System.Threading.Thread thread;
+        static int rl, rt, rr, rb; // widget rectangle in physical pixels, updated by Taskbar.Place
+
+        public static void SetRect(int l, int t, int r, int b) { rl = l; rt = t; rr = r; rb = b; }
+
+        public static void Watch(long hwnd)
+        {
+            target = hwnd;
+            if (hwnd == 0 || thread != null) return;
+            thread = new System.Threading.Thread(Run);
+            thread.IsBackground = true;
+            thread.Start();
+        }
+
+        static void Run()
+        {
+
+            hook = SetWindowsHookExW(WH_MOUSE_LL, proc, GetModuleHandleW(null), 0);
+            MSG m;
+            while (GetMessageW(out m, IntPtr.Zero, 0, 0) > 0) { }
+            UnhookWindowsHookEx(hook);
+        }
+
+        static IntPtr Hook(int code, IntPtr wParam, IntPtr lParam)
+        {
+            long t = target;
+            if (code >= 0 && t != 0)
+            {
+                int msg = wParam.ToInt32();
+                if (msg == WM_LBUTTONDOWN || msg == WM_LBUTTONUP || msg == WM_RBUTTONDOWN || msg == WM_RBUTTONUP)
+                {
+                    var s = (MSLLHOOKSTRUCT)Marshal.PtrToStructure(lParam, typeof(MSLLHOOKSTRUCT));
+                    IntPtr h = new IntPtr(t);
+                    RECT r; r.L = rl; r.T = rt; r.R = rr; r.B = rb;
+                    if (r.R > r.L && IsWindowVisible(h) && s.pt.X >= r.L && s.pt.X < r.R && s.pt.Y >= r.T && s.pt.Y < r.B)
+                    {
+                        if (msg == WM_LBUTTONUP || msg == WM_RBUTTONUP)
+                        {
+                            string button = msg == WM_LBUTTONUP ? "left" : "right";
+                            // Console.Out is synchronized, so this can't interleave with responses.
+                            Console.Out.WriteLine("{\"event\":\"widget-click\",\"button\":\"" + button + "\",\"x\":" + (s.pt.X - r.L) +
+                                ",\"y\":" + (s.pt.Y - r.T) + ",\"width\":" + (r.R - r.L) + ",\"height\":" + (r.B - r.T) + "}");
+                            Console.Out.Flush();
+                        }
+                        return new IntPtr(1); // swallow: the click is handled by TrayPulse
+                    }
+                }
+            }
+            return CallNextHookEx(hook, code, wParam, lParam);
+        }
+    }
+
+    // ------------------------------------------------------------------
     // Core Audio COM interop
     // ------------------------------------------------------------------
     enum EDataFlow { eRender = 0, eCapture = 1, eAll = 2 }

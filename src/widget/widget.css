@@ -1,0 +1,98 @@
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: transparent;
+  overflow: hidden;
+  user-select: none;
+  cursor: default;
+}
+body {
+  --fg: #fff;
+  --muted: rgba(255, 255, 255, 0.6);
+  --hover: rgba(255, 255, 255, 0.08);
+  --track: rgba(255, 255, 255, 0.28);
+  font: 12px/1.25 'Segoe UI Variable Text', 'Segoe UI', 'Yu Gothic UI', sans-serif;
+  color: var(--fg);
+}
+body.light {
+  --fg: #111;
+  --muted: rgba(0, 0, 0, 0.6);
+  --hover: rgba(0, 0, 0, 0.06);
+  --track: rgba(0, 0, 0, 0.22);
+}
+#root {
+  display: inline-flex;
+  align-items: stretch;
+  height: 100%;
+  white-space: nowrap;
+}
+.item {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 7px;
+  margin: 4px 0;
+  border-radius: 5px;
+}
+.item:hover {
+  background: var(--hover);
+}
+.top {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.kind {
+  font-size: 13px;
+}
+.pct {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.parts {
+  font-size: 10px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.name {
+  font-size: 10.5px;
+  color: var(--muted);
+  max-width: 96px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bar {
+  width: 100%;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--track);
+  margin-top: 3px;
+  overflow: hidden;
+}
+.bar > div {
+  height: 100%;
+  background: #22c55e;
+}
+.bar > div.mid {
+  background: #f59e0b;
+}
+.bar > div.low {
+  background: #ef4444;
+}
+.low-text {
+  color: #ff5a52;
+}
+.offline {
+  opacity: 0.5;
+}
+.mic {
+  align-items: center;
+  font-size: 16px;
+}
+.mic.muted {
+  color: #ff5a52;
+}
+.empty {
+  color: var(--muted);
+}

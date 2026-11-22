@@ -143,6 +143,7 @@ class DeviceManager extends EventEmitter {
       notifyFull: cfg.notifyFull !== false,
       notifyLow: cfg.notifyLow !== false,
       ownTray: !!cfg.ownTray,
+      showOnTaskbar: cfg.showOnTaskbar !== false,
       effectiveLevel: this.effectiveLevel(d),
     };
   }
