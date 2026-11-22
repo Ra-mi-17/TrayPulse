@@ -68,7 +68,7 @@ npm run dist:mac   # macOS (dist/*.dmg) ※ Mac 上で実行
 ```
 
 `v0.1.0` のようなタグを push すると、GitHub Actions（`.github/workflows/build.yml`）が Windows / macOS 版をビルドし、GitHub Releases に公開します。
-自動アップデートはこの Releases を参照します。`package.json` の `repository.url` を実際のリポジトリに書き換えてください。
+自動アップデートはこの Releases（`package.json` の `repository.url`）を参照します。
 
 ### UI のスクリーンショットを撮る（開発用）
 

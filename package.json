@@ -8,7 +8,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/YOUR_GITHUB_USER/TrayPulse.git"
+    "url": "https://github.com/Ra-mi-17/TrayPulse.git"
   },
   "scripts": {
     "start": "electron .",
