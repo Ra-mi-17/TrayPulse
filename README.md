@@ -1,5 +1,7 @@
 # TrayPulse
 
+[**⬇ ダウンロード（最新リリース）**](https://github.com/Ra-mi-17/TrayPulse/releases/latest)
+
 Bluetooth / ワイヤレス機器のバッテリー残量をタスクトレイ（Windows）・メニューバー（macOS）に常駐表示する Electron アプリです。
 オーディオデバイスの切り替え、マイクのミュート、アプリごとの音量調整、スクリーンショットもトレイからすばやく操作できます。
 
@@ -67,7 +69,7 @@ npm run dist:win   # Windows インストーラー (dist/*.exe)
 npm run dist:mac   # macOS (dist/*.dmg) ※ Mac 上で実行
 ```
 
-`v0.1.0` のようなタグを push すると、GitHub Actions（`.github/workflows/build.yml`）が Windows / macOS 版をビルドし、GitHub Releases に公開します。
+`v0.1.0` のようなタグを push すると、GitHub Actions（`.github/workflows/build.yml`）が Windows / macOS 版をビルドし、GitHub Releases に **下書き** としてアップロードします。内容を確認してから Releases 画面で公開してください。
 自動アップデートはこの Releases（`package.json` の `repository.url`）を参照します。
 
 ### UI のスクリーンショットを撮る（開発用）
