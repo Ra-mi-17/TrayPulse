@@ -119,12 +119,17 @@
   "set.modeTray": "System tray",
   "set.modeBoth": "Both",
   "set.taskbarShowNames": "Show device names on the taskbar",
-  "set.taskbarShowDisconnected": "Show disconnected devices on the taskbar",
+  "set.taskbarShowDisconnected": "Show disconnected devices (taskbar / tray)",
   "set.taskbarShowMic": "Show microphone state on the taskbar",
   "set.widgetFailed": "Can't show on the taskbar, using the system tray instead ({reason})",
   "widget.vertical": "vertical taskbars are not supported",
   "widget.no-taskbar": "taskbar not found",
   "widget.no-window": "window could not be created",
   "widget.error": "internal error, see logs",
-  "device.showOnTaskbar": "Show on taskbar"
+  "device.showOnTaskbar": "Show on taskbar",
+  "set.accent": "Accent color",
+  "set.accentReset": "Reset",
+  "set.taskbarShowAudio": "Show audio button on the taskbar",
+  "widget.audioTip": "Open audio settings",
+  "audio.openOsSettings": "Open OS sound settings"
 }

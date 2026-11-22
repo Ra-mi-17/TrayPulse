@@ -58,6 +58,7 @@
           <div id="mixer"></div>
         </div>
         <p class="notice" id="mixer-unsupported" hidden data-i18n="audio.mixerUnsupported"></p>
+        <div class="row"><span></span><button class="btn small" id="btn-sound-settings" data-i18n="audio.openOsSettings"></button></div>
       </section>
 
       <!-- Settings -->
@@ -77,6 +78,18 @@
             <option value="dark" data-i18n="set.themeDark"></option>
           </select>
         </label>
+        <div class="row"><span data-i18n="set.accent"></span><span class="accent-chip" id="accent-chip"></span></div>
+        <div class="accent-picker">
+          <div class="swatches" id="accent-swatches"></div>
+          <div class="accent-row"><span class="ch">H</span><input type="range" min="0" max="359" id="accent-h" class="ch-range hue" /><span class="num" id="accent-h-num"></span></div>
+          <div class="accent-row"><span class="ch r">R</span><input type="range" min="0" max="255" id="accent-r" class="ch-range" /><span class="num" id="accent-r-num"></span></div>
+          <div class="accent-row"><span class="ch g">G</span><input type="range" min="0" max="255" id="accent-g" class="ch-range" /><span class="num" id="accent-g-num"></span></div>
+          <div class="accent-row"><span class="ch b">B</span><input type="range" min="0" max="255" id="accent-b" class="ch-range" /><span class="num" id="accent-b-num"></span></div>
+          <div class="accent-row">
+            <input type="text" id="accent-hex" maxlength="7" spellcheck="false" />
+            <button class="btn small" id="accent-reset" data-i18n="set.accentReset"></button>
+          </div>
+        </div>
         <label class="row"><span data-i18n="set.launchAtLogin"></span><input type="checkbox" class="switch" data-setting="launchAtLogin" /></label>
         <label class="row"><span data-i18n="set.autoUpdate"></span><input type="checkbox" class="switch" data-setting="autoUpdate" /></label>
         <div class="row"><span></span><button class="btn small" id="btn-check-updates" data-i18n="set.checkUpdates"></button></div>
@@ -95,6 +108,7 @@
           <label class="row"><span data-i18n="set.taskbarShowNames"></span><input type="checkbox" class="switch" data-setting="taskbarShowNames" /></label>
           <label class="row"><span data-i18n="set.taskbarShowDisconnected"></span><input type="checkbox" class="switch" data-setting="taskbarShowDisconnected" /></label>
           <label class="row"><span data-i18n="set.taskbarShowMic"></span><input type="checkbox" class="switch" data-setting="taskbarShowMic" /></label>
+          <label class="row"><span data-i18n="set.taskbarShowAudio"></span><input type="checkbox" class="switch" data-setting="taskbarShowAudio" /></label>
         </div>
         <label class="row"><span data-i18n="set.trayDisplay"></span><select data-setting="trayDisplay" id="tray-display"></select></label>
         <label class="row"><span data-i18n="set.showMicTray"></span><input type="checkbox" class="switch" data-setting="showMicTray" /></label>
@@ -146,8 +160,8 @@
     </main>
 
     <footer class="bottom">
-      <button class="btn" id="btn-shot-region">✂ <span data-i18n="ui.shotRegion"></span></button>
-      <button class="btn" id="btn-shot-full">🖥 <span data-i18n="ui.shotFull"></span></button>
+      <button class="btn accent" id="btn-shot-region">✂ <span data-i18n="ui.shotRegion"></span></button>
+      <button class="btn accent" id="btn-shot-full">🖥 <span data-i18n="ui.shotFull"></span></button>
       <button class="btn ghost" id="btn-quit" data-i18n="ui.quit"></button>
     </footer>
 

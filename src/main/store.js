@@ -4,9 +4,14 @@ const fs = require('fs');
 const path = require('path');
 const { EventEmitter } = require('events');
 
+// Bump when a migration is added below.
+const SETTINGS_VERSION = 2;
+
 const DEFAULTS = {
+  settingsVersion: SETTINGS_VERSION,
   language: 'auto', // 'auto' | 'ja' | 'en'
   theme: 'system', // 'system' | 'light' | 'dark'
+  accentColor: '', // '' = theme default, otherwise '#rrggbb'
   launchAtLogin: false,
   autoUpdate: true,
   pollIntervalSec: 60,
@@ -14,8 +19,9 @@ const DEFAULTS = {
   // Where batteries are shown. 'taskbar' = embedded right-aligned in the Windows taskbar.
   displayMode: process.platform === 'win32' ? 'taskbar' : 'tray', // 'taskbar' | 'tray' | 'both'
   taskbarShowNames: true,
-  taskbarShowDisconnected: true,
+  taskbarShowDisconnected: false, // also applies to the tray tooltip / menu
   taskbarShowMic: true,
+  taskbarShowAudio: true, // button that opens the Audio tab
   trayDisplay: 'lowest', // 'lowest' | 'icon' | <deviceId>
   showMicTray: true,
   notifyLow: true,
@@ -43,6 +49,17 @@ function deepMerge(base, extra) {
   return out;
 }
 
+// Older versions saved every default value, so a changed default needs an explicit migration.
+function migrate(raw) {
+  const v = Number(raw.settingsVersion) || 1;
+  if (v < 2) {
+    // v0.2.0: disconnected devices are hidden from the taskbar / tray by default.
+    raw.taskbarShowDisconnected = false;
+  }
+  raw.settingsVersion = SETTINGS_VERSION;
+  return raw;
+}
+
 class Store extends EventEmitter {
   constructor(dir) {
     super();
@@ -50,7 +67,7 @@ class Store extends EventEmitter {
     this.data = deepMerge(DEFAULTS, {});
     try {
       const raw = JSON.parse(fs.readFileSync(this.file, 'utf8'));
-      this.data = deepMerge(DEFAULTS, raw);
+      this.data = deepMerge(DEFAULTS, migrate(raw));
     } catch {
       /* first run */
     }

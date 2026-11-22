@@ -86,9 +86,11 @@ body.light {
 .offline {
   opacity: 0.5;
 }
-.mic {
+.mic,
+.icon-btn {
   align-items: center;
   font-size: 16px;
+  padding: 0 5px;
 }
 .mic.muted {
   color: #ff5a52;

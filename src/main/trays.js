@@ -93,7 +93,8 @@ class TrayManager {
   update(devices) {
     if (devices) this.devices = devices;
     if (!this.main) return; // tray hidden (taskbar widget mode)
-    const visible = this.devices.filter((d) => !d.hidden);
+    const showDisconnected = this.store().get('taskbarShowDisconnected');
+    const visible = this.devices.filter((d) => !d.hidden && (showDisconnected || d.connected !== false || d.ownTray));
     const dark = darkTaskbar();
 
     // --- main tray

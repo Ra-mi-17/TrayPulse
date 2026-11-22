@@ -8,4 +8,5 @@ contextBridge.exposeInMainWorld('widget', {
   click: () => ipcRenderer.send('widget:click'),
   menu: () => ipcRenderer.send('widget:menu'),
   micClick: () => ipcRenderer.send('widget:mic'),
+  audioClick: () => ipcRenderer.send('widget:audio'),
 });

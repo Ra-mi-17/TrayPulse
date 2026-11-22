@@ -49,10 +49,17 @@ function render(d) {
     root.append(item);
   }
 
-  if (!d.devices.length && !d.mic.show) {
+  if (!d.devices.length && !d.mic.show && !d.audio.show) {
     const item = el('div', 'item empty', '🔋 --');
     item.title = t.noDevices;
     root.append(item);
+  }
+
+  if (d.audio.show) {
+    const audio = el('div', 'item icon-btn', '🎚️');
+    audio.title = t.audio;
+    audio.dataset.action = 'audio';
+    root.append(audio);
   }
 
   if (d.mic.show) {
@@ -73,6 +80,7 @@ function hit({ button, x, y }) {
   if (button === 'right') return widget.menu();
   const target = document.elementFromPoint(x, y);
   if (target && target.closest('[data-action="mic"]')) return widget.micClick();
+  if (target && target.closest('[data-action="audio"]')) return widget.audioClick();
   widget.click();
 }
 

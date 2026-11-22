@@ -28,6 +28,8 @@ contextBridge.exposeInMainWorld('tp', {
   chooseScreenshotDir: () => invoke('app:chooseScreenshotDir'),
   checkUpdates: () => invoke('app:checkUpdates'),
   suspendHotkeys: (on) => invoke('hotkeys:suspend', on),
+  reportTab: (tab) => ipcRenderer.send('popup:tab', tab),
+  openSoundSettings: () => invoke('app:openSoundSettings'),
 
   on: (channel, fn) => {
     const allowed = ['state:update', 'mic:update', 'popup:shown'];

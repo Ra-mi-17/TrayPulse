@@ -5,6 +5,9 @@
   --muted: #6b6f7a;
   --line: #e3e5ea;
   --accent: #3b82f6;
+  --accent-soft: rgba(59, 130, 246, 0.14);
+  --accent-text: #2563eb;
+  --accent-fg: #fff;
   --green: #22c55e;
   --amber: #f59e0b;
   --red: #ef4444;
@@ -18,6 +21,9 @@ body.dark {
   --muted: #9a9fab;
   --line: #3a3d44;
   --accent: #60a5fa;
+  --accent-soft: rgba(96, 165, 250, 0.16);
+  --accent-text: #93c5fd;
+  --accent-fg: #0b1220;
   --track: #3d4048;
   --hover: rgba(255, 255, 255, 0.06);
 }
@@ -128,9 +134,9 @@ input {
 }
 .tab.active {
   background: var(--card);
-  color: var(--fg);
+  color: var(--accent-text);
   font-weight: 600;
-  box-shadow: 0 0 0 1px var(--line);
+  box-shadow: 0 0 0 1px var(--line), inset 0 -2px 0 var(--accent);
 }
 
 main {
@@ -371,6 +377,22 @@ h3:first-child {
   padding: 3px 9px;
   font-size: 12px;
 }
+.btn.accent {
+  background: var(--accent-soft);
+  border-color: transparent;
+  color: var(--accent-text);
+  font-weight: 600;
+}
+.btn.accent:hover {
+  background: var(--accent);
+  color: var(--accent-fg);
+}
+.btn:focus-visible,
+select:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
 .btn.ghost {
   border-color: transparent;
   background: transparent;
@@ -466,4 +488,87 @@ input[type='range'] {
 ::-webkit-scrollbar-thumb {
   background: var(--track);
   border-radius: 4px;
+}
+
+/* ---------------------------------------------------------------- accent picker */
+.accent-chip {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: var(--accent);
+  box-shadow: 0 0 0 1px var(--line);
+}
+.accent-picker {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 8px 10px;
+  margin: 2px 0 8px;
+}
+.swatches {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+.swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 0 0 1px var(--line);
+  padding: 0;
+}
+.swatch.selected {
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--fg);
+}
+.accent-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 26px;
+}
+.accent-row .ch {
+  width: 12px;
+  font-weight: 600;
+  font-size: 11px;
+  color: var(--muted);
+}
+.accent-row .ch.r {
+  color: #ef4444;
+}
+.accent-row .ch.g {
+  color: #22c55e;
+}
+.accent-row .ch.b {
+  color: #3b82f6;
+}
+.ch-range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 10px;
+  border-radius: 5px;
+  background: var(--track);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+}
+.ch-range.hue {
+  background: linear-gradient(90deg, #f00, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00);
+}
+.ch-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid rgba(0, 0, 0, 0.35);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+}
+#accent-hex {
+  width: 90px;
+  font-family: Consolas, Menlo, monospace;
+}
+.accent-row .btn {
+  margin-left: auto;
 }

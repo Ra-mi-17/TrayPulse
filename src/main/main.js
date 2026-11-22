@@ -127,6 +127,17 @@ function togglePopup(bounds) {
   showPopup(bounds);
 }
 
+// Taskbar audio button: open the popup on the Audio tab, or close it if that's already showing.
+let popupTab = 'devices';
+function toggleAudioPanel(bounds) {
+  if (popup.isVisible() && popupTab === 'audio') {
+    popup.hide();
+    return;
+  }
+  if (!popup.isVisible() && Date.now() - lastHiddenAt < 250) return;
+  showPopup(bounds, 'audio');
+}
+
 function defaultAnchor() {
   if (widgetActive()) return widget.bounds();
   return trays.main ? trays.main.getBounds() : null;
@@ -282,7 +293,7 @@ async function checkForUpdatesNow() {
 // ------------------------------------------------------------------ context menu
 function buildMenu() {
   const t = i18n.t;
-  const list = devices.list().filter((d) => !d.hidden);
+  const list = devices.list().filter((d) => !d.hidden && (d.connected !== false || store.get('taskbarShowDisconnected')));
   const deviceItems = list.length
     ? list.map((d) => ({
         label: `${d.displayName}  ${d.effectiveLevel == null ? '--' : d.effectiveLevel + '%'}${d.connected === false ? ` (${t('device.disconnected')})` : ''}`,
@@ -389,7 +400,7 @@ function registerIpc() {
       startMicPolling();
       setMicState(micMuted);
     }
-    if ('trayDisplay' in patch || 'defaultLowThreshold' in patch) trays.update(devices.list());
+    if ('trayDisplay' in patch || 'defaultLowThreshold' in patch || 'taskbarShowDisconnected' in patch) trays.update(devices.list());
     if ('displayMode' in patch) {
       widgetStatus = null;
       applyDisplayMode();
@@ -428,6 +439,13 @@ function registerIpc() {
   ipcMain.on('widget:click', (e) => fromWidget(e) && togglePopup(widget.bounds()));
   ipcMain.on('widget:menu', (e) => fromWidget(e) && popupMenuAtCursor());
   ipcMain.on('widget:mic', (e) => fromWidget(e) && toggleMic().catch(() => {}));
+  ipcMain.on('widget:audio', (e) => fromWidget(e) && toggleAudioPanel(widget.bounds()));
+  ipcMain.on('popup:tab', (_e, tab) => {
+    popupTab = String(tab);
+  });
+  ipcMain.handle('app:openSoundSettings', () =>
+    shell.openExternal(isMac ? 'x-apple.systempreferences:com.apple.preference.sound' : 'ms-settings:sound')
+  );
 
   ipcMain.handle('screenshot', (_e, mode) => takeScreenshot(mode));
   ipcMain.handle('app:quit', () => app.quit());
@@ -522,11 +540,13 @@ function widgetData() {
       components: d.components,
     })),
     mic: { show: store.get('taskbarShowMic') && audio.capabilities.micMute && micMuted !== null, muted: !!micMuted },
+    audio: { show: store.get('taskbarShowAudio') },
     text: {
       noDevices: t('tray.noDevices'),
       disconnected: t('device.disconnected'),
       micMuted: t('mic.tooltipMuted'),
       micLive: t('mic.tooltipLive'),
+      audio: t('widget.audioTip'),
       parts: { left: t('part.left'), right: t('part.right'), case: t('part.case') },
     },
   };

@@ -119,12 +119,17 @@
   "set.modeTray": "タスクトレイ",
   "set.modeBoth": "両方",
   "set.taskbarShowNames": "タスクバーに機器名を表示",
-  "set.taskbarShowDisconnected": "未接続の機器もタスクバーに表示",
+  "set.taskbarShowDisconnected": "未接続の機器も表示（タスクバー・トレイ）",
   "set.taskbarShowMic": "タスクバーにマイクの状態を表示",
   "set.widgetFailed": "タスクバーに表示できないため、タスクトレイに表示しています（{reason}）",
   "widget.vertical": "縦向きのタスクバーには非対応です",
   "widget.no-taskbar": "タスクバーが見つかりません",
   "widget.no-window": "ウィンドウを作成できませんでした",
   "widget.error": "内部エラー。ログを確認してください",
-  "device.showOnTaskbar": "タスクバーに表示"
+  "device.showOnTaskbar": "タスクバーに表示",
+  "set.accent": "差し色（アクセントカラー）",
+  "set.accentReset": "既定に戻す",
+  "set.taskbarShowAudio": "タスクバーにオーディオボタンを表示",
+  "widget.audioTip": "オーディオ設定を開く",
+  "audio.openOsSettings": "OS のサウンド設定を開く"
 }

@@ -24,6 +24,150 @@ function applyI18n() {
 
 function applyTheme() {
   document.body.classList.toggle('dark', !!S.dark);
+  applyAccent(S.settings.accentColor);
+}
+
+// ================================================================ accent color
+const ACCENT_PRESETS = ['#3b82f6', '#6366f1', '#8b5cf6', '#ec4899', '#ef4444', '#f97316', '#eab308', '#22c55e', '#14b8a6', '#06b6d4', '#64748b'];
+const ACCENT_VARS = ['--accent', '--accent-soft', '--accent-text', '--accent-fg'];
+
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+function hexToRgb(hex) {
+  const m = /^#?([0-9a-f]{6})$/i.exec(String(hex || '').trim());
+  if (!m) return null;
+  const n = parseInt(m[1], 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+function rgbToHex([r, g, b]) {
+  return '#' + [r, g, b].map((v) => clamp(Math.round(v), 0, 255).toString(16).padStart(2, '0')).join('');
+}
+function rgbToHsv([r, g, b]) {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min;
+  let h = 0;
+  if (d) h = max === r ? ((g - b) / d) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  return [(h * 60 + 360) % 360, max ? d / max : 0, max];
+}
+function hsvToRgb([h, s, v]) {
+  const f = (n) => {
+    const k = (n + h / 60) % 6;
+    return v - v * s * Math.max(0, Math.min(k, 4 - k, 1));
+  };
+  return [f(5) * 255, f(3) * 255, f(1) * 255];
+}
+function luminance([r, g, b]) {
+  const c = [r, g, b].map((v) => {
+    v /= 255;
+    return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+}
+function contrast(a, b) {
+  const [x, y] = [luminance(a), luminance(b)].sort((p, q) => q - p);
+  return (x + 0.05) / (y + 0.05);
+}
+
+// Applies a custom accent (or the theme default when empty). Text/foreground variants are derived
+// so that the color stays readable on the current light/dark background.
+function applyAccent(hex) {
+  const style = document.body.style;
+  const rgb = hexToRgb(hex);
+  if (!rgb) {
+    ACCENT_VARS.forEach((v) => style.removeProperty(v));
+    return;
+  }
+  const dark = !!S.dark;
+  const bg = dark ? [31, 32, 36] : [246, 247, 249];
+  const toward = dark ? [255, 255, 255] : [0, 0, 0];
+  let text = rgb;
+  for (let i = 0; i < 12 && contrast(text, bg) < 4.5; i++) text = text.map((v, k) => v + (toward[k] - v) * 0.15);
+  style.setProperty('--accent', rgbToHex(rgb));
+  style.setProperty('--accent-soft', `rgba(${rgb.join(', ')}, ${dark ? 0.2 : 0.14})`);
+  style.setProperty('--accent-text', rgbToHex(text));
+  style.setProperty('--accent-fg', luminance(rgb) > 0.4 ? '#111111' : '#ffffff');
+}
+
+let accentRgb = [59, 130, 246];
+let accentHue = 217;
+const saveAccent = throttle((hex) => tp.setSettings({ accentColor: hex }), 200);
+
+function currentAccentHex() {
+  return S.settings.accentColor || (S.dark ? '#60a5fa' : '#3b82f6');
+}
+
+// Updates sliders, gradients (the RGB "curves") and labels from accentRgb.
+function paintAccentPicker() {
+  const [r, g, b] = accentRgb.map(Math.round);
+  const set = (id, v) => {
+    if (document.activeElement !== $(`#accent-${id}`)) $(`#accent-${id}`).value = v;
+    $(`#accent-${id}-num`).textContent = v;
+  };
+  set('r', r);
+  set('g', g);
+  set('b', b);
+  set('h', Math.round(accentHue));
+  $('#accent-r').style.background = `linear-gradient(90deg, rgb(0,${g},${b}), rgb(255,${g},${b}))`;
+  $('#accent-g').style.background = `linear-gradient(90deg, rgb(${r},0,${b}), rgb(${r},255,${b}))`;
+  $('#accent-b').style.background = `linear-gradient(90deg, rgb(${r},${g},0), rgb(${r},${g},255))`;
+  const hex = rgbToHex(accentRgb);
+  if (document.activeElement !== $('#accent-hex')) $('#accent-hex').value = hex;
+  $$('.swatch').forEach((s) => s.classList.toggle('selected', s.dataset.color === hex && !!S.settings.accentColor));
+}
+
+function renderAccentPicker() {
+  if ($('.accent-picker').contains(document.activeElement) && document.activeElement.type === 'range') return;
+  accentRgb = hexToRgb(currentAccentHex());
+  const [h, s] = rgbToHsv(accentRgb);
+  if (s > 0.02) accentHue = h;
+  paintAccentPicker();
+}
+
+function setAccentRgb(rgb, { fromHue = false } = {}) {
+  accentRgb = rgb.map((v) => clamp(v, 0, 255));
+  if (!fromHue) {
+    const [h, s] = rgbToHsv(accentRgb);
+    if (s > 0.02) accentHue = h;
+  }
+  const hex = rgbToHex(accentRgb);
+  S.settings.accentColor = hex;
+  applyAccent(hex);
+  paintAccentPicker();
+  saveAccent(hex);
+}
+
+function bindAccentPicker() {
+  const box = $('#accent-swatches');
+  for (const c of ACCENT_PRESETS) {
+    const b = document.createElement('button');
+    b.className = 'swatch';
+    b.style.background = c;
+    b.dataset.color = c;
+    b.title = c;
+    b.addEventListener('click', () => setAccentRgb(hexToRgb(c)));
+    box.appendChild(b);
+  }
+  ['r', 'g', 'b'].forEach((ch, i) =>
+    $(`#accent-${ch}`).addEventListener('input', (e) => {
+      const next = [...accentRgb];
+      next[i] = Number(e.target.value);
+      setAccentRgb(next);
+    })
+  );
+  $('#accent-h').addEventListener('input', (e) => {
+    accentHue = Number(e.target.value);
+    let [, s, v] = rgbToHsv(accentRgb);
+    if (s < 0.15) s = 0.7; // a grey has no hue: give it some color so the slider does something
+    if (v < 0.25) v = 0.85;
+    setAccentRgb(hsvToRgb([accentHue, s, v]), { fromHue: true });
+  });
+  $('#accent-hex').addEventListener('change', (e) => {
+    const rgb = hexToRgb(e.target.value);
+    if (rgb) setAccentRgb(rgb);
+    else e.target.value = rgbToHex(accentRgb);
+  });
+  $('#accent-reset').addEventListener('click', async () => {
+    setState(await tp.setSettings({ accentColor: '' }));
+  });
 }
 
 function throttle(fn, ms) {
@@ -57,6 +201,7 @@ function relTime(ts) {
 // ================================================================ tabs
 function setTab(name) {
   activeTab = name;
+  tp.reportTab(name);
   $$('.tab').forEach((b) => b.classList.toggle('active', b.dataset.tab === name));
   $$('.panel').forEach((p) => p.classList.toggle('active', p.id === `panel-${name}`));
   clearInterval(audioTimer);
@@ -350,6 +495,7 @@ function renderSettings() {
     pl.appendChild(row);
   }
   $('#version').textContent = `v${S.version}`;
+  renderAccentPicker();
 }
 
 function bindSettings() {
@@ -462,6 +608,9 @@ async function init() {
   applyI18n();
   bindAudioControls();
   bindSettings();
+  bindAccentPicker();
+  renderAccentPicker();
+  $('#btn-sound-settings').addEventListener('click', () => tp.openSoundSettings());
 
   $$('.tab').forEach((b) => b.addEventListener('click', () => setTab(b.dataset.tab)));
   $('#btn-close').addEventListener('click', () => tp.hide());
