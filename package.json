@@ -1,0 +1,73 @@
+{
+  "name": "traypulse",
+  "productName": "TrayPulse",
+  "version": "0.1.0",
+  "description": "A tray / menu bar app that shows the battery level of Bluetooth and wireless devices, with quick audio controls.",
+  "main": "src/main/main.js",
+  "author": "TrayPulse contributors",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YOUR_GITHUB_USER/TrayPulse.git"
+  },
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "icons": "node scripts/gen-icon.js",
+    "dist": "npm run icons && electron-builder",
+    "dist:win": "npm run icons && electron-builder --win",
+    "dist:mac": "npm run icons && electron-builder --mac"
+  },
+  "build": {
+    "appId": "io.github.traypulse",
+    "productName": "TrayPulse",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "asarUnpack": [
+      "src/main/native/**"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "category": "public.app-category.utilities",
+      "icon": "build/icon.png",
+      "extendInfo": {
+        "LSUIElement": true
+      }
+    },
+    "publish": [
+      {
+        "provider": "github"
+      }
+    ]
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.11"
+  },
+  "devDependencies": {
+    "electron": "^45.4.1",
+    "electron-builder": "^26.18.0"
+  },
+  "allowScripts": {
+    "electron@45.4.1": true,
+    "electron-winstaller@5.4.0": true
+  }
+}

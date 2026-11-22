@@ -1,0 +1,185 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'" />
+    <title>TrayPulse</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="top">
+      <div class="brand"><span class="logo"></span>TrayPulse</div>
+      <div class="top-actions">
+        <button class="icon-btn" id="btn-refresh" data-i18n-title="ui.refresh">⟳</button>
+        <button class="icon-btn" id="btn-close" data-i18n-title="ui.close">✕</button>
+      </div>
+    </header>
+
+    <nav class="tabs">
+      <button class="tab active" data-tab="devices" data-i18n="tab.devices"></button>
+      <button class="tab" data-tab="audio" data-i18n="tab.audio"></button>
+      <button class="tab" data-tab="settings" data-i18n="tab.settings"></button>
+    </nav>
+
+    <main>
+      <!-- Devices -->
+      <section class="panel active" id="panel-devices">
+        <div id="device-list"></div>
+        <p class="hint" id="last-poll"></p>
+      </section>
+
+      <!-- Audio -->
+      <section class="panel" id="panel-audio">
+        <div class="card">
+          <div class="card-title"><span>🔈</span><span data-i18n="audio.output"></span></div>
+          <select id="output-select"></select>
+          <div class="slider-row">
+            <button class="icon-btn" id="output-mute">🔊</button>
+            <input type="range" id="output-volume" min="0" max="100" />
+            <span class="num" id="output-volume-num"></span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span>🎙</span><span data-i18n="audio.input"></span></div>
+          <select id="input-select"></select>
+          <div class="slider-row">
+            <button class="mic-btn" id="mic-toggle"></button>
+            <input type="range" id="input-volume" min="0" max="100" />
+            <span class="num" id="input-volume-num"></span>
+          </div>
+          <p class="hint" id="mic-hotkey-hint"></p>
+        </div>
+
+        <p class="notice" id="sas-notice" hidden data-i18n="audio.needSas"></p>
+
+        <div class="card" id="mixer-card">
+          <div class="card-title"><span>🎚</span><span data-i18n="audio.mixer"></span></div>
+          <div id="mixer"></div>
+        </div>
+        <p class="notice" id="mixer-unsupported" hidden data-i18n="audio.mixerUnsupported"></p>
+      </section>
+
+      <!-- Settings -->
+      <section class="panel" id="panel-settings">
+        <h3 data-i18n="set.general"></h3>
+        <label class="row"><span data-i18n="set.language"></span>
+          <select data-setting="language">
+            <option value="auto" data-i18n="set.auto"></option>
+            <option value="ja">日本語</option>
+            <option value="en">English</option>
+          </select>
+        </label>
+        <label class="row"><span data-i18n="set.theme"></span>
+          <select data-setting="theme">
+            <option value="system" data-i18n="set.themeSystem"></option>
+            <option value="light" data-i18n="set.themeLight"></option>
+            <option value="dark" data-i18n="set.themeDark"></option>
+          </select>
+        </label>
+        <label class="row"><span data-i18n="set.launchAtLogin"></span><input type="checkbox" class="switch" data-setting="launchAtLogin" /></label>
+        <label class="row"><span data-i18n="set.autoUpdate"></span><input type="checkbox" class="switch" data-setting="autoUpdate" /></label>
+        <div class="row"><span></span><button class="btn small" id="btn-check-updates" data-i18n="set.checkUpdates"></button></div>
+        <p class="hint" id="update-status"></p>
+
+        <h3 data-i18n="set.tray"></h3>
+        <label class="row"><span data-i18n="set.trayDisplay"></span><select data-setting="trayDisplay" id="tray-display"></select></label>
+        <label class="row"><span data-i18n="set.showMicTray"></span><input type="checkbox" class="switch" data-setting="showMicTray" /></label>
+        <p class="hint" data-i18n="set.ownTrayHint"></p>
+
+        <h3 data-i18n="set.battery"></h3>
+        <label class="row"><span data-i18n="set.pollInterval"></span>
+          <select data-setting="pollIntervalSec" data-type="number">
+            <option value="30">30 s</option>
+            <option value="60">1 min</option>
+            <option value="120">2 min</option>
+            <option value="300">5 min</option>
+            <option value="600">10 min</option>
+          </select>
+        </label>
+        <label class="row"><span data-i18n="set.powerSaving"></span><input type="checkbox" class="switch" data-setting="powerSaving" /></label>
+        <p class="hint" data-i18n="set.powerSavingHint"></p>
+        <label class="row"><span data-i18n="set.notifyLow"></span><input type="checkbox" class="switch" data-setting="notifyLow" /></label>
+        <label class="row"><span data-i18n="set.defaultLow"></span><input type="number" min="1" max="99" class="num-input" data-setting="defaultLowThreshold" data-type="number" /></label>
+        <label class="row"><span data-i18n="set.notifyFull"></span><input type="checkbox" class="switch" data-setting="notifyFull" /></label>
+        <label class="row"><span data-i18n="set.fullThreshold"></span>
+          <select data-setting="fullThreshold" data-type="number">
+            <option value="80">80%</option>
+            <option value="90">90%</option>
+            <option value="100">100%</option>
+          </select>
+        </label>
+
+        <h3 data-i18n="set.hotkeys"></h3>
+        <div class="row"><span data-i18n="hk.micMute"></span><button class="hotkey" data-hotkey="micMute"></button></div>
+        <div class="row"><span data-i18n="hk.screenshotRegion"></span><button class="hotkey" data-hotkey="screenshotRegion"></button></div>
+        <div class="row"><span data-i18n="hk.screenshotFull"></span><button class="hotkey" data-hotkey="screenshotFull"></button></div>
+        <p class="hint" data-i18n="hk.hint"></p>
+
+        <h3 data-i18n="set.screenshot"></h3>
+        <div class="row"><span data-i18n="set.saveTo"></span><button class="btn small" id="btn-shot-dir" data-i18n="set.change"></button></div>
+        <p class="hint path" id="shot-dir"></p>
+        <label class="row"><span data-i18n="set.copyClipboard"></span><input type="checkbox" class="switch" data-setting="screenshotCopyToClipboard" /></label>
+
+        <h3 data-i18n="set.providers"></h3>
+        <div id="provider-list"></div>
+        <div class="row"><span></span><button class="btn small" id="btn-plugins" data-i18n="set.openPlugins"></button></div>
+        <p class="hint" data-i18n="set.pluginsHint"></p>
+
+        <h3 data-i18n="set.about"></h3>
+        <div class="row"><span>TrayPulse</span><span id="version"></span></div>
+        <div class="row"><span></span><button class="btn small" id="btn-logs" data-i18n="set.openLogs"></button></div>
+      </section>
+    </main>
+
+    <footer class="bottom">
+      <button class="btn" id="btn-shot-region">✂ <span data-i18n="ui.shotRegion"></span></button>
+      <button class="btn" id="btn-shot-full">🖥 <span data-i18n="ui.shotFull"></span></button>
+      <button class="btn ghost" id="btn-quit" data-i18n="ui.quit"></button>
+    </footer>
+
+    <template id="tpl-device">
+      <div class="device">
+        <div class="device-main">
+          <div class="kind"></div>
+          <div class="info">
+            <div class="name-row"><span class="name"></span><span class="status"></span></div>
+            <div class="bar"><div class="fill"></div></div>
+            <div class="parts"></div>
+          </div>
+          <div class="level"></div>
+          <button class="icon-btn edit" data-i18n-title="device.edit">⋯</button>
+        </div>
+        <div class="device-edit" hidden>
+          <label class="row"><span data-i18n="device.alias"></span><input type="text" class="alias" /></label>
+          <label class="row"><span data-i18n="device.lowThreshold"></span><input type="number" min="1" max="99" class="num-input low" /></label>
+          <label class="row"><span data-i18n="device.notifyLow"></span><input type="checkbox" class="switch notify-low" /></label>
+          <label class="row"><span data-i18n="device.notifyFull"></span><input type="checkbox" class="switch notify-full" /></label>
+          <label class="row"><span data-i18n="device.ownTray"></span><input type="checkbox" class="switch own-tray" /></label>
+          <label class="row"><span data-i18n="device.hidden"></span><input type="checkbox" class="switch hidden-toggle" /></label>
+          <div class="edit-actions">
+            <button class="btn small up" data-i18n="device.up"></button>
+            <button class="btn small down" data-i18n="device.down"></button>
+            <button class="btn small danger forget" data-i18n="device.forget"></button>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <template id="tpl-session">
+      <div class="session">
+        <img class="app-icon" alt="" />
+        <div class="session-body">
+          <div class="session-name"></div>
+          <div class="slider-row">
+            <button class="icon-btn mute">🔊</button>
+            <input type="range" min="0" max="100" class="vol" />
+            <span class="num"></span>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
