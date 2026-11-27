@@ -1,7 +1,7 @@
 {
   "name": "traypulse",
   "productName": "TrayPulse",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "A tray / menu bar app that shows the battery level of Bluetooth and wireless devices, with quick audio controls.",
   "main": "src/main/main.js",
   "author": "TrayPulse contributors",

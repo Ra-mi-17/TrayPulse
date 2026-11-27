@@ -105,6 +105,21 @@
             </select>
           </label>
           <p class="notice" id="widget-status" hidden></p>
+          <label class="row"><span data-i18n="set.taskbarTextColor"></span>
+            <select data-setting="taskbarTextColor">
+              <option value="background" data-i18n="set.textColorBackground"></option>
+              <option value="theme" data-i18n="set.textColorTheme"></option>
+              <option value="white" data-i18n="set.textColorWhite"></option>
+              <option value="black" data-i18n="set.textColorBlack"></option>
+            </select>
+          </label>
+          <label class="row"><span data-i18n="set.taskbarTextOutline"></span>
+            <select data-setting="taskbarTextOutline">
+              <option value="off" data-i18n="set.outlineOff"></option>
+              <option value="thin" data-i18n="set.outlineThin"></option>
+              <option value="thick" data-i18n="set.outlineThick"></option>
+            </select>
+          </label>
           <label class="row"><span data-i18n="set.taskbarShowNames"></span><input type="checkbox" class="switch" data-setting="taskbarShowNames" /></label>
           <label class="row"><span data-i18n="set.taskbarShowDisconnected"></span><input type="checkbox" class="switch" data-setting="taskbarShowDisconnected" /></label>
           <label class="row"><span data-i18n="set.taskbarShowMic"></span><input type="checkbox" class="switch" data-setting="taskbarShowMic" /></label>
@@ -179,6 +194,13 @@
         </div>
         <div class="device-edit" hidden>
           <label class="row"><span data-i18n="device.alias"></span><input type="text" class="alias" /></label>
+          <div class="row"><span data-i18n="device.icon"></span>
+            <span class="icon-actions">
+              <span class="icon-preview"></span>
+              <button class="btn small choose-icon" data-i18n="device.iconChoose"></button>
+              <button class="btn small reset-icon" data-i18n="device.iconReset"></button>
+            </span>
+          </div>
           <label class="row"><span data-i18n="device.lowThreshold"></span><input type="number" min="1" max="99" class="num-input low" /></label>
           <label class="row"><span data-i18n="device.notifyLow"></span><input type="checkbox" class="switch notify-low" /></label>
           <label class="row"><span data-i18n="device.notifyFull"></span><input type="checkbox" class="switch notify-full" /></label>

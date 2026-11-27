@@ -11,6 +11,7 @@ const {
   shell,
   dialog,
   powerMonitor,
+  nativeImage,
 } = require('electron');
 const path = require('path');
 const fs = require('fs');
@@ -63,6 +64,18 @@ function themeBackground() {
   return nativeTheme.shouldUseDarkColors ? '#1f2024' : '#f6f7f9';
 }
 
+let dialogOpen = false;
+// Open a file dialog over the popup without the popup hiding itself on blur.
+async function openDialog(options) {
+  dialogOpen = true;
+  try {
+    return await dialog.showOpenDialog(popup, options);
+  } finally {
+    dialogOpen = false;
+    if (popup && !popup.isDestroyed()) popup.focus();
+  }
+}
+
 function createPopup() {
   popup = new BrowserWindow({
     width: 380,
@@ -89,6 +102,7 @@ function createPopup() {
   popup.setMenu(null);
   popup.loadFile(path.join(__dirname, '..', 'renderer', 'index.html'));
   popup.on('blur', () => {
+    if (dialogOpen) return; // a file dialog owned by the popup took focus
     if (isDev && process.argv.includes('--keep-open')) return;
     if (popup.webContents.isDevToolsOpened()) return;
     popup.hide();
@@ -375,6 +389,25 @@ function registerIpc() {
     widget?.update();
     return state();
   });
+  // Custom device icon: any image the OS can decode, scaled down and stored inline in the settings.
+  ipcMain.handle('device:chooseIcon', async (_e, id) => {
+    const r = await openDialog({
+      properties: ['openFile'],
+      filters: [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'gif', 'bmp', 'ico'] }],
+    });
+    if (r.canceled || !r.filePaths[0]) return { state: state() };
+    let img = nativeImage.createFromPath(r.filePaths[0]);
+    if (img.isEmpty()) return { state: state(), error: 'unsupported' };
+    const { width, height } = img.getSize();
+    const max = 64;
+    if (width > max || height > max) {
+      img = width >= height ? img.resize({ width: max, quality: 'best' }) : img.resize({ height: max, quality: 'best' });
+    }
+    store.setDevice(id, { icon: img.toDataURL() });
+    trays.update(devices.list());
+    widget?.update();
+    return { state: state() };
+  });
   ipcMain.handle('device:forget', (_e, id) => {
     devices.forget(id);
     return state();
@@ -454,7 +487,7 @@ function registerIpc() {
   ipcMain.handle('app:openLogs', () => shell.openPath(path.join(app.getPath('userData'), 'logs')));
   ipcMain.handle('app:openScreenshotDir', () => shell.openPath(screenshot.outputDir(store)));
   ipcMain.handle('app:chooseScreenshotDir', async () => {
-    const r = await dialog.showOpenDialog(popup, { properties: ['openDirectory', 'createDirectory'] });
+    const r = await openDialog({ properties: ['openDirectory', 'createDirectory'] });
     if (r.canceled || !r.filePaths[0]) return state();
     store.set({ screenshotDir: r.filePaths[0] });
     return state();
@@ -530,10 +563,13 @@ function widgetData() {
   return {
     dark: darkTaskbar(),
     showNames: store.get('taskbarShowNames'),
+    textColor: store.get('taskbarTextColor'),
+    outline: store.get('taskbarTextOutline'),
     devices: list.map((d) => ({
       id: d.id,
       name: d.displayName,
       kind: d.kind,
+      icon: d.icon || null,
       level: d.effectiveLevel ?? d.level,
       lowThreshold: d.lowThreshold,
       connected: d.connected,
@@ -618,6 +654,7 @@ app.whenReady().then(async () => {
   if (process.platform === 'win32') {
     widget = new TaskbarWidget({
       getData: widgetData,
+      wantsBackground: () => store.get('taskbarTextColor') === 'background',
       log,
       onStatus: (reason) => {
         if (reason) log('taskbar widget unavailable:', reason);

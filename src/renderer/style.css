@@ -572,3 +572,26 @@ input[type='range'] {
 .accent-row .btn {
   margin-left: auto;
 }
+/* Custom device icons */
+.kind img {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+  vertical-align: middle;
+}
+.icon-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.icon-preview {
+  font-size: 18px;
+  width: 24px;
+  text-align: center;
+}
+.icon-preview img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  vertical-align: middle;
+}

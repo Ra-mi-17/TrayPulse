@@ -215,6 +215,7 @@ namespace TrayPulse
                 // Hand the physical-pixel rectangle to the mouse hook (its own thread can't reliably query it).
                 RECT placed; GetWindowRect(h, out placed);
                 TaskbarInput.SetRect(placed.L, placed.T, placed.R, placed.B);
+                lastRect = placed; hasRect = true;
 
                 var res = new Dictionary<string, object>();
                 res["ok"] = true;
@@ -225,6 +226,62 @@ namespace TrayPulse
                 return res;
             }
             finally { SetThreadDpiAwarenessContext(prevCtx); }
+        }
+
+        static RECT lastRect;
+        static bool hasRect;
+
+        [DllImport("user32.dll")] static extern IntPtr GetDC(IntPtr h);
+        [DllImport("user32.dll")] static extern int ReleaseDC(IntPtr h, IntPtr dc);
+        [DllImport("gdi32.dll")] static extern IntPtr CreateCompatibleDC(IntPtr dc);
+        [DllImport("gdi32.dll")] static extern IntPtr CreateCompatibleBitmap(IntPtr dc, int w, int h);
+        [DllImport("gdi32.dll")] static extern IntPtr SelectObject(IntPtr dc, IntPtr o);
+        [DllImport("gdi32.dll")] static extern bool BitBlt(IntPtr dst, int x, int y, int w, int h, IntPtr src, int sx, int sy, uint rop);
+        [DllImport("gdi32.dll")] static extern bool DeleteDC(IntPtr dc);
+        [DllImport("gdi32.dll")] static extern bool DeleteObject(IntPtr o);
+        [DllImport("gdi32.dll")] static extern uint GetPixel(IntPtr dc, int x, int y);
+
+        // Average brightness (0-255) of what is visible behind the widget. Samples the transparent
+        // margin rows above and below the widget's items, so the result follows a transparent taskbar
+        // (e.g. the wallpaper showing through) as well as the normal light/dark taskbar.
+        public static Dictionary<string, object> SampleBackground()
+        {
+            var res = new Dictionary<string, object>();
+            if (!hasRect) { res["ok"] = false; return res; }
+            IntPtr prevCtx = SetThreadDpiAwarenessContext(PER_MONITOR_AWARE_V2);
+            IntPtr screen = IntPtr.Zero, mem = IntPtr.Zero, bmp = IntPtr.Zero, old = IntPtr.Zero;
+            try
+            {
+                RECT r = lastRect;
+                int w = r.R - r.L, h = r.B - r.T;
+                if (w < 4 || h < 8) { res["ok"] = false; return res; }
+                screen = GetDC(IntPtr.Zero);
+                mem = CreateCompatibleDC(screen);
+                bmp = CreateCompatibleBitmap(screen, w, h);
+                old = SelectObject(mem, bmp);
+                BitBlt(mem, 0, 0, w, h, screen, r.L, r.T, 0x00CC0020 | 0x40000000); // SRCCOPY | CAPTUREBLT
+                int[] rows = { 2, 3, h - 4, h - 3 };
+                double sum = 0; int n = 0;
+                for (int i = 0; i < rows.Length; i++)
+                    for (int x = 1; x < w - 1; x += 2)
+                    {
+                        uint c = GetPixel(mem, x, rows[i]);
+                        if (c == 0xFFFFFFFF) continue; // CLR_INVALID
+                        double rr = c & 0xFF, gg = (c >> 8) & 0xFF, bb = (c >> 16) & 0xFF;
+                        sum += 0.2126 * rr + 0.7152 * gg + 0.0722 * bb; n++;
+                    }
+                res["ok"] = n > 0;
+                res["luma"] = n > 0 ? (int)Math.Round(sum / n) : -1;
+                return res;
+            }
+            finally
+            {
+                if (old != IntPtr.Zero) SelectObject(mem, old);
+                if (bmp != IntPtr.Zero) DeleteObject(bmp);
+                if (mem != IntPtr.Zero) DeleteDC(mem);
+                if (screen != IntPtr.Zero) ReleaseDC(IntPtr.Zero, screen);
+                SetThreadDpiAwarenessContext(prevCtx);
+            }
         }
     }
 

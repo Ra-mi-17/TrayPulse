@@ -25,6 +25,7 @@ Bluetooth / ワイヤレス機器のバッテリー残量をタスクトレイ�
 | スクリーンショット（範囲 / 全画面） | ✅ | ✅ (要検証) |
 | ログイン時の自動起動 | ✅ | ✅ |
 | 機器の並べ替え・表示名変更・非表示 | ✅ | ✅ |
+| 機器ごとに任意の画像をアイコンに設定 | ✅ | ✅ |
 | ライト / ダークテーマ、日本語 / 英語 | ✅ | ✅ |
 | 差し色（アクセントカラー）の変更（プリセット / 色相・RGB スライダー / HEX） | ✅ | ✅ |
 | 自動アップデート（GitHub Releases） | ✅ | ✅ |
@@ -39,6 +40,8 @@ TrafficMonitor などと同じ方法で、小さな透明ウィンドウをタ�
 - 設定タブの「残量の表示場所」で **タスクバー / タスクトレイ / 両方** を切り替えられます（Windows の既定はタスクバー）。
 - 左クリックでポップアップ、右クリックでメニューを開きます。🎚️ ボタンでオーディオ設定（出力・入力の切り替え、アプリごとの音量）をワンクリックで開き、マイクのアイコンでミュートを切り替えます。
 - 未接続の機器は既定で表示しません（設定の「未接続の機器も表示」で変更できます）。
+- 文字色は既定で **背景に合わせて自動** で切り替わります。ウィジェットの後ろに実際に見えている色（透明化したタスクバー越しの壁紙など）の明るさを 2 秒ごとに測り、白か黒を選びます。「タスクバーのテーマに合わせる」「白」「黒」に固定することもできます。
+- 背景が明暗の混ざった壁紙で読みづらいときは、設定の **文字の輪郭**（細い / 太い）をオンにしてください。輪郭は文字と反対の色で描きます。
 - 別プロセスの子ウィンドウになった Chromium はマウス入力を受け取れないため、クリックはヘルパーの低レベルマウスフック（`WH_MOUSE_LL`）で検出しています。フックが扱うのは **ウィジェットの範囲内のクリックだけ** で、それ以外のマウス操作はそのまま通します。
 - タスクバーが縦向きの場合など、タスクバーに表示できない場合は自動的にタスクトレイ表示に切り替わります。
 - エクスプローラーが再起動した場合は、ウィジェットを自動で作り直します。
@@ -155,6 +158,7 @@ MIT
 **TrayPulse** is a cross-platform (Windows / macOS) Electron tray app that shows the battery level of Bluetooth and wireless devices,
 shown right-aligned directly on the Windows taskbar (or in the tray / macOS menu bar), with quick audio controls (output/input switching, mic mute with a global hotkey, per-app volume mixer on Windows) and screenshot shortcuts.
 
+- Taskbar text adapts to whatever is visible behind it (works with transparent taskbars), with an optional outline. Each device can use its own image as its icon.
 - `npm install && npm start` to run, `npm run dist` to package.
 - Battery data comes from pluggable *providers* (`src/main/providers`). Drop extra providers into the plugins folder.
 - The macOS implementation has **not been tested on real hardware yet**. Testing and PRs are very welcome!

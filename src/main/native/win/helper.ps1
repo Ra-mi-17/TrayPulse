@@ -112,6 +112,7 @@ while ($true) {
             'battery.pnp' { $res = [TrayPulse.BtBattery]::Read() }
             'battery.ble' { $res = Get-BleBatteries ([bool]$a.uncached) }
             'taskbar.watchInput' { [TrayPulse.TaskbarInput]::Watch([long]$a.hwnd); $res = $true }
+            'taskbar.sampleBackground' { $res = [TrayPulse.Taskbar]::SampleBackground() }
             'taskbar.place' { $res = [TrayPulse.Taskbar]::Place([long]$a.hwnd, [int]$a.width, [int]$a.gap) }
             'audio.listDevices' { $res = [TrayPulse.Audio]::ListDevices([int]$a.flow) }
             'audio.setDefault' { [TrayPulse.Audio]::SetDefault([string]$a.id); $res = $true }

@@ -8,6 +8,7 @@ contextBridge.exposeInMainWorld('tp', {
   refresh: () => invoke('devices:refresh'),
   updateDevice: (id, patch) => invoke('device:update', id, patch),
   forgetDevice: (id) => invoke('device:forget', id),
+  chooseDeviceIcon: (id) => invoke('device:chooseIcon', id),
   reorderDevices: (ids) => invoke('devices:reorder', ids),
   setSettings: (patch) => invoke('settings:set', patch),
 

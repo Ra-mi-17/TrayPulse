@@ -131,5 +131,18 @@
   "set.accentReset": "既定に戻す",
   "set.taskbarShowAudio": "タスクバーにオーディオボタンを表示",
   "widget.audioTip": "オーディオ設定を開く",
-  "audio.openOsSettings": "OS のサウンド設定を開く"
+  "audio.openOsSettings": "OS のサウンド設定を開く",
+  "device.icon": "アイコン",
+  "device.iconChoose": "画像を選択…",
+  "device.iconReset": "既定に戻す",
+  "device.iconUnsupported": "この画像は読み込めませんでした（PNG / JPEG / GIF / BMP / ICO に対応）。",
+  "set.taskbarTextColor": "タスクバーの文字色",
+  "set.textColorBackground": "背景に合わせて自動",
+  "set.textColorTheme": "タスクバーのテーマに合わせる",
+  "set.textColorWhite": "白",
+  "set.textColorBlack": "黒",
+  "set.taskbarTextOutline": "文字の輪郭",
+  "set.outlineOff": "なし",
+  "set.outlineThin": "細い",
+  "set.outlineThick": "太い"
 }

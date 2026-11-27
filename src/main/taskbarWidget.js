@@ -17,6 +17,7 @@ class TaskbarWidget {
    * @param {() => void} o.onMicClick
    * @param {(reason: string|null) => void} o.onStatus  called with null when OK, or a failure reason
    * @param {(...a) => void} o.log
+   * @param {() => boolean} o.wantsBackground  true when the text colour follows the real background
    */
   constructor(o) {
     Object.assign(this, o);
@@ -27,6 +28,7 @@ class TaskbarWidget {
     this.enabled = false;
     this.status = null;
     this.recreateTimer = null;
+    this.bgDark = null; // brightness of what's behind the widget (null = unknown)
     this.onHelperEvent = (ev) => this.handleInput(ev);
   }
 
@@ -116,9 +118,25 @@ class TaskbarWidget {
         return this.place();
       }
       this.setStatus(null);
+      if (this.wantsBackground?.()) await this.sampleBackground();
     } catch (e) {
       this.log('taskbar place failed', e.message);
       this.setStatus('error');
+    }
+  }
+
+  // Decide whether the background is dark, with hysteresis so a mid-grey wallpaper doesn't flicker.
+  async sampleBackground() {
+    const r = await audioHelper().call('taskbar.sampleBackground', {}, 5000);
+    if (!r.ok || !(r.luma >= 0)) return;
+    let dark = this.bgDark;
+    if (dark === null) dark = r.luma < 128;
+    else if (dark && r.luma > 146) dark = false;
+    else if (!dark && r.luma < 110) dark = true;
+    if (dark !== this.bgDark) {
+      this.log('taskbar background', r.luma, dark ? 'dark' : 'light');
+      this.bgDark = dark;
+      this.update();
     }
   }
 
@@ -132,7 +150,7 @@ class TaskbarWidget {
   // Push fresh data to the renderer.
   update() {
     if (!this.win || this.win.isDestroyed() || this.win.webContents.isLoading()) return;
-    this.win.webContents.send('widget:data', this.getData());
+    this.win.webContents.send('widget:data', { ...this.getData(), bgDark: this.bgDark });
   }
 
   // Renderer reports its content width (CSS px).

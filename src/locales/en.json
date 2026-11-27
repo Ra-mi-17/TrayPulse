@@ -131,5 +131,18 @@
   "set.accentReset": "Reset",
   "set.taskbarShowAudio": "Show audio button on the taskbar",
   "widget.audioTip": "Open audio settings",
-  "audio.openOsSettings": "Open OS sound settings"
+  "audio.openOsSettings": "Open OS sound settings",
+  "device.icon": "Icon",
+  "device.iconChoose": "Choose image…",
+  "device.iconReset": "Reset",
+  "device.iconUnsupported": "This image couldn't be loaded (PNG / JPEG / GIF / BMP / ICO are supported).",
+  "set.taskbarTextColor": "Taskbar text color",
+  "set.textColorBackground": "Auto (match the background)",
+  "set.textColorTheme": "Follow the taskbar theme",
+  "set.textColorWhite": "White",
+  "set.textColorBlack": "Black",
+  "set.taskbarTextOutline": "Text outline",
+  "set.outlineOff": "None",
+  "set.outlineThin": "Thin",
+  "set.outlineThick": "Thick"
 }

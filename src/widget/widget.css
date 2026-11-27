@@ -98,3 +98,58 @@ body.light {
 .empty {
   color: var(--muted);
 }
+.kind-img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+/* Text outline (helps on transparent taskbars over busy wallpapers). The outline uses the opposite
+   colour of the text. */
+body {
+  --outline: rgba(0, 0, 0, 0.85);
+}
+body.light {
+  --outline: rgba(255, 255, 255, 0.9);
+}
+body.outline-thin {
+  --muted: var(--fg);
+}
+body.outline-thick {
+  --muted: var(--fg);
+}
+body.outline-thin .top,
+body.outline-thin .parts,
+body.outline-thin .name,
+body.outline-thin .icon-btn,
+body.outline-thin .mic {
+  text-shadow:
+    -1px 0 0 var(--outline),
+    1px 0 0 var(--outline),
+    0 -1px 0 var(--outline),
+    0 1px 0 var(--outline);
+}
+body.outline-thick .top,
+body.outline-thick .parts,
+body.outline-thick .name,
+body.outline-thick .icon-btn,
+body.outline-thick .mic {
+  text-shadow:
+    -1px 0 0 var(--outline),
+    1px 0 0 var(--outline),
+    0 -1px 0 var(--outline),
+    0 1px 0 var(--outline),
+    -1px -1px 0 var(--outline),
+    1px -1px 0 var(--outline),
+    -1px 1px 0 var(--outline),
+    1px 1px 0 var(--outline),
+    0 0 3px var(--outline);
+}
+body.outline-thin .kind-img,
+body.outline-thin .bar {
+  filter: drop-shadow(0 0 1px var(--outline));
+}
+body.outline-thick .kind-img,
+body.outline-thick .bar {
+  filter: drop-shadow(0 0 1px var(--outline)) drop-shadow(0 0 1px var(--outline));
+}

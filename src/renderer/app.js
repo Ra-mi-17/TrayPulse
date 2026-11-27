@@ -240,7 +240,7 @@ function renderDevices() {
     const level = d.effectiveLevel ?? d.level;
     el.classList.toggle('is-hidden', d.hidden);
     el.classList.toggle('offline', d.connected === false);
-    $('.kind', el).textContent = KIND_ICON[d.kind] || KIND_ICON.other;
+    setKindIcon($('.kind', el), d);
     $('.name', el).textContent = d.displayName;
     $('.name', el).title = d.name;
     let status = '';
@@ -271,6 +271,14 @@ function renderDevices() {
       if (editor.hidden) openEditors.delete(d.id);
       else openEditors.add(d.id);
     });
+    setKindIcon($('.icon-preview', el), d);
+    $('.reset-icon', el).hidden = !d.icon;
+    $('.choose-icon', el).addEventListener('click', async () => {
+      const r = await tp.chooseDeviceIcon(d.id);
+      if (r.error) alert(t('device.iconUnsupported'));
+      setState(r.state);
+    });
+    $('.reset-icon', el).addEventListener('click', () => update(d.id, { icon: null }));
     const alias = $('.alias', el);
     alias.value = d.displayName === d.name ? '' : d.displayName;
     alias.placeholder = d.name;
@@ -299,6 +307,18 @@ function renderDevices() {
     list.appendChild(el);
   });
   $('#last-poll').textContent = S.lastPoll ? t('device.updated', { when: relTime(S.lastPoll) }) : '';
+}
+
+function setKindIcon(box, d) {
+  box.textContent = '';
+  if (d.icon) {
+    const img = document.createElement('img');
+    img.src = d.icon;
+    img.alt = '';
+    box.appendChild(img);
+  } else {
+    box.textContent = KIND_ICON[d.kind] || KIND_ICON.other;
+  }
 }
 
 function bindToggle(input, value, onChange) {

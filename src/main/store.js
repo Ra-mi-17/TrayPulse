@@ -21,6 +21,8 @@ const DEFAULTS = {
   taskbarShowNames: true,
   taskbarShowDisconnected: false, // also applies to the tray tooltip / menu
   taskbarShowMic: true,
+  taskbarTextColor: 'background', // background | theme | white | black
+  taskbarTextOutline: 'off', // off | thin | thick
   taskbarShowAudio: true, // button that opens the Audio tab
   trayDisplay: 'lowest', // 'lowest' | 'icon' | <deviceId>
   showMicTray: true,
@@ -66,7 +68,8 @@ class Store extends EventEmitter {
     this.file = path.join(dir, 'settings.json');
     this.data = deepMerge(DEFAULTS, {});
     try {
-      const raw = JSON.parse(fs.readFileSync(this.file, 'utf8'));
+      // Tolerate a BOM in case the file was hand-edited with a tool that adds one.
+      const raw = JSON.parse(fs.readFileSync(this.file, 'utf8').replace(/^﻿/, ''));
       this.data = deepMerge(DEFAULTS, migrate(raw));
     } catch {
       /* first run */

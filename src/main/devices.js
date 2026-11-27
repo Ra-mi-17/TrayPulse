@@ -144,6 +144,7 @@ class DeviceManager extends EventEmitter {
       notifyLow: cfg.notifyLow !== false,
       ownTray: !!cfg.ownTray,
       showOnTaskbar: cfg.showOnTaskbar !== false,
+      icon: cfg.icon || null, // data URL of a user-chosen image
       effectiveLevel: this.effectiveLevel(d),
     };
   }

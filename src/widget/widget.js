@@ -18,7 +18,14 @@ function levelClass(level, low) {
 }
 
 function render(d) {
-  document.body.classList.toggle('light', !d.dark);
+  // Text colour: follow the real background behind the widget, the taskbar theme, or a fixed colour.
+  let darkBg = d.dark;
+  if (d.textColor === 'background' && d.bgDark != null) darkBg = d.bgDark;
+  else if (d.textColor === 'white') darkBg = true;
+  else if (d.textColor === 'black') darkBg = false;
+  document.body.classList.toggle('light', !darkBg);
+  document.body.classList.toggle('outline-thin', d.outline === 'thin');
+  document.body.classList.toggle('outline-thick', d.outline === 'thick');
   root.innerHTML = '';
   const t = d.text;
 
@@ -28,7 +35,14 @@ function render(d) {
     const item = el('div', 'item' + (dev.connected === false ? ' offline' : ''));
 
     const top = el('div', 'top');
-    top.append(el('span', 'kind', KIND_ICON[dev.kind] || KIND_ICON.other));
+    if (dev.icon) {
+      const img = el('img', 'kind-img');
+      img.src = dev.icon;
+      img.alt = '';
+      top.append(img);
+    } else {
+      top.append(el('span', 'kind', KIND_ICON[dev.kind] || KIND_ICON.other));
+    }
     top.append(el('span', 'pct' + (cls === 'low' ? ' low-text' : ''), level == null ? '--' : `${level}%`));
     item.append(top);
 
