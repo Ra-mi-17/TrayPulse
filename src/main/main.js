@@ -569,6 +569,15 @@ async function captureForDocs(dir) {
     await wait(tab === 'audio' ? 3000 : 800);
     const img = await popup.webContents.capturePage();
     fs.writeFileSync(path.join(dir, `${tab}.png`), img.toPNG());
+    if (tab === 'devices') {
+      // Also capture the first device's editor ("⋯") opened.
+      const opened = await popup.webContents.executeJavaScript(`(() => { const b = document.querySelector('.device .edit'); if (b) b.click(); return !!b; })()`);
+      if (opened) {
+        await wait(500);
+        fs.writeFileSync(path.join(dir, 'device-edit.png'), (await popup.webContents.capturePage()).toPNG());
+        await popup.webContents.executeJavaScript(`document.querySelector('.device .edit').click()`);
+      }
+    }
   }
   // Right half of the primary display's bottom edge (taskbar widget).
   popup.hide();

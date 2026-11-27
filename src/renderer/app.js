@@ -16,9 +16,15 @@ function t(key, vars = {}) {
   return String(s).replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? `{${k}}`);
 }
 
+// <template> contents are not part of the document, so rows cloned from a
+// template must be translated separately with translate(clone).
+function translate(root) {
+  $$('[data-i18n]', root).forEach((el) => (el.textContent = t(el.dataset.i18n)));
+  $$('[data-i18n-title]', root).forEach((el) => (el.title = t(el.dataset.i18nTitle)));
+}
+
 function applyI18n() {
-  $$('[data-i18n]').forEach((el) => (el.textContent = t(el.dataset.i18n)));
-  $$('[data-i18n-title]').forEach((el) => (el.title = t(el.dataset.i18nTitle)));
+  translate(document);
   document.documentElement.lang = S.lang;
 }
 
@@ -230,6 +236,7 @@ function renderDevices() {
   const tpl = $('#tpl-device');
   S.devices.forEach((d, idx) => {
     const el = tpl.content.firstElementChild.cloneNode(true);
+    translate(el);
     const level = d.effectiveLevel ?? d.level;
     el.classList.toggle('is-hidden', d.hidden);
     el.classList.toggle('offline', d.connected === false);
@@ -384,6 +391,7 @@ async function loadMixer() {
   const tpl = $('#tpl-session');
   for (const s of sessions) {
     const el = tpl.content.firstElementChild.cloneNode(true);
+    translate(el);
     const img = $('.app-icon', el);
     if (s.icon) img.src = s.icon;
     else img.style.visibility = 'hidden';
